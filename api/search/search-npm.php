@@ -7,7 +7,7 @@ header("Content-Type: application/json; charset=utf-8");
 
 function requestApi($url, $successMessage, $errorMessage) {
     if (empty($url)) {
-        echo json_encode(["status" => false, "message" => $errorMessage, "creator" => "Nanzz", "timestamp" => time(), "result" => null], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        echo json_encode(["status" => false, "message" => $errorMessage, "creator" => "Tiyanz", "timestamp" => time(), "result" => null], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
         exit;
     }
     $ch = curl_init();
@@ -19,7 +19,7 @@ function requestApi($url, $successMessage, $errorMessage) {
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
     $isSuccess = ($httpCode === 200 && $result);
-    echo json_encode(["status" => $isSuccess, "message" => $isSuccess ? $successMessage : $errorMessage, "creator" => "Nanzz", "timestamp" => time(), "result" => $isSuccess ? json_decode($result, true) : null], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    echo json_encode(["status" => $isSuccess, "message" => $isSuccess ? $successMessage : $errorMessage, "creator" => "Tiyanz", "timestamp" => time(), "result" => $isSuccess ? json_decode($result, true) : null], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
 }
 

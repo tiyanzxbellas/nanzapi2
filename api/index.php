@@ -3,10 +3,10 @@ error_reporting(0);
 ini_set('display_errors', '0');
 if(session_status()==PHP_SESSION_NONE){session_start();}
 define('API_FOLDER','api');
-define('LINK_WA_REQUEST','https://wa.me/6283178098872?text=Halo+saya+ingin+request+fitur+baru+untuk+NanzzAPI');
-define('LINK_WA_CHANNEL','https://whatsapp.com/channel/0029VbC1zvC4NVinIpJqza0h');
-define('LINK_GROUP','https://chat.whatsapp.com/Lhfb885LgC13hnMld07oOn');
-define('LINK_CHAT','https://api-nanzz.my.id/chat');
+define('LINK_WA_REQUEST','https://wa.me/6283862356347?text=Halo+saya+ingin+request+fitur+baru+untuk+TiyanzApi');
+define('LINK_WA_CHANNEL','https://whatsapp.com/channel/0029VbCs8HM9xVJd31fSu60X');
+define('LINK_GROUP','https://chat.whatsapp.com/IJYEqJQ7A1B9dGUflHCDeK');
+define('LINK_CHAT','https://api-tiyanz.my.id/chat');
 define('BANNER_VIDEO_DARK','https://kappa.lol/2HLn5j');
 define('BANNER_VIDEO_LIGHT','https://kappa.lol/uJWEb9');
 define('LINK_NONTON_BACA','https://api-nanas.my.id');
@@ -92,8 +92,8 @@ $total_endpoints=count_endpoints($api_tree);
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>NanzzApi | Docs</title>
-<link rel="icon" type="image/png" href="https://nanzzcode.my.id/uploads/6a1a993b3e680_1780128059.png">
+<title>TiyanzApi | Docs</title>
+<link rel="icon" type="image/png" href="https://tiyanzcode.my.id/uploads/6a1a993b3e680_1780128059.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@500;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
@@ -302,7 +302,7 @@ footer a:hover{color:var(--p3);}
 <body>
 
 <div id="splash">
-  <div class="splash-logo">NANZZ<em>API</em></div>
+  <div class="splash-logo">TIYANZ<em>API</em></div>
   <div class="splash-bar-wrap"><div class="splash-bar-fill"></div></div>
 </div>
 
@@ -312,7 +312,7 @@ footer a:hover{color:var(--p3);}
 
 <nav class="nav">
   <div class="nav-left">
-    <div class="nav-logo">NANZZ<em>API</em><span class="polling-dot" id="polling-dot" title="Memeriksa endpoint baru..."></span></div>
+    <div class="nav-logo">TIYANZ<em>API</em><span class="polling-dot" id="polling-dot" title="Memeriksa endpoint baru..."></span></div>
     <div class="total-ep-badge" id="total-ep-badge" title="Total Endpoint">
       <i class="fas fa-bolt"></i><span><?= $total_endpoints ?></span>
     </div>
@@ -341,7 +341,7 @@ footer a:hover{color:var(--p3);}
     <div class="hero-body">
       <div class="eyebrow">FREE REST API</div>
       <div class="htitle">
-        NANZZAPI<br><span>DOCS</span>
+        TIYANZAPI<br><span>DOCS</span>
         <div class="hero-badge" id="hero-badge" title="Total Endpoint">
           <i class="fas fa-bolt"></i><span><?= $total_endpoints ?></span>
         </div>
@@ -378,7 +378,7 @@ footer a:hover{color:var(--p3);}
   </div>
 
   <footer>
-    NANZZAPI V2 &copy; <?= date('Y') ?> · All rights reserved<br>
+    TIYANZAPI V2 &copy; <?= date('Y') ?> · All rights reserved<br>
     <a href="#">Docs</a> · <a href="<?= LINK_WA_REQUEST ?>">Support</a>
   </footer>
 </div>
@@ -491,7 +491,7 @@ window.execAPI=async function(eid){
 
 window.cpy=t=>navigator.clipboard?.writeText(t).then(()=>showToast('Copied!')).catch(()=>showToast('Gagal','err'));
 window.cpyR=id=>{const el=document.getElementById('rp-'+id);if(el)cpy(el.innerText);else showToast('Nothing to copy','err');};
-window.dlMedia=function(id){const c=responseCache[id];if(!c?.url)return;const ext={};'image/jpeg,jpg;image/png,png;image/gif,gif;image/webp,webp;video/mp4,mp4;audio/mpeg,mp3;application/pdf,pdf;application/zip,zip'.split(';').forEach(s=>{const[k,v]=s.split(',');ext[k]=v;});const a=document.createElement('a');a.href=c.url;a.download=`nanzzapi.${ext[c.mime.split(';')[0].trim()]||'bin'}`;document.body.appendChild(a);a.click();document.body.removeChild(a);showToast('Download started!');};
+window.dlMedia=function(id){const c=responseCache[id];if(!c?.url)return;const ext={};'image/jpeg,jpg;image/png,png;image/gif,gif;image/webp,webp;video/mp4,mp4;audio/mpeg,mp3;application/pdf,pdf;application/zip,zip'.split(';').forEach(s=>{const[k,v]=s.split(',');ext[k]=v;});const a=document.createElement('a');a.href=c.url;a.download=`TiyanzApi.${ext[c.mime.split(';')[0].trim()]||'bin'}`;document.body.appendChild(a);a.click();document.body.removeChild(a);showToast('Download started!');};
 
 document.addEventListener('DOMContentLoaded',fetchData);
 </script>

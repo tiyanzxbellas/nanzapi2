@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - Fake Welcome Member Card V3
+// Deskripsi: Tiyanz API - Fake Welcome Member Card V3
 // Contoh: POST multipart/form-data: file=pp.jpg, file=background.jpg, nama=nanas, namagrup=nanas, memberke=1
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param nama Nama User
@@ -16,7 +16,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(30);
 
 $nama     = trim($_POST['nama'] ?? 'nanasnanas');
@@ -26,7 +26,7 @@ $files    = $_FILES['file'] ?? [];
 
 $data = [
     'status' => false,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['nama' => $nama, 'namagrup' => $namagrup, 'memberke' => $memberke],
     'result' => null
 ];

@@ -10,7 +10,7 @@ header('Content-Type: image/png');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);

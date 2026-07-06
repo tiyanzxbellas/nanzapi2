@@ -10,7 +10,7 @@ header('Content-Type: application/json; charset=utf-8');
 set_time_limit(60);
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 
 $text = $_GET['text'] ?? '';
 $model = $_GET['model'] ?? 'chatgpt';

@@ -13,7 +13,7 @@ $text = $_GET['text'] ?? '';
 if (empty($text)) {
     echo json_encode([
         'status' => false, 
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => 'Parameter text wajib diisi'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
@@ -42,13 +42,13 @@ if ($http_code === 200 && !empty($response)) {
     
     echo json_encode([
         'status' => $data['status'] ?? false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'result' => $data['result'] ?? []
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 } else {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => "Gagal mendapatkan response (HTTP {$http_code})"
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 }

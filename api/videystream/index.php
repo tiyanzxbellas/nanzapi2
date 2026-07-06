@@ -64,7 +64,7 @@ if (isset($_GET['ajax']) && isset($_GET['id'])) {
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Nanzz Video Archive</title>
+<title>Tiyanz Video Archive</title>
 <style>
 [data-theme="dark"]{--bg:#0a0a14;--bg2:#12121f;--card:#1a1a2e;--card2:#222240;--b1:rgba(124,58,237,.15);--b2:rgba(124,58,237,.3);--p:#7c3aed;--p2:#9061f9;--tx:#e8e8f0;--tx2:#a0a0c0;--mu:#555}
 [data-theme="light"]{--bg:#f5f5ff;--bg2:#eee;--card:#fff;--card2:#f0f0ff;--b1:rgba(109,40,217,.1);--b2:rgba(109,40,217,.2);--p:#6d28d9;--p2:#7c3aed;--tx:#1a1a2e;--tx2:#555;--mu:#999}
@@ -109,7 +109,7 @@ footer{text-align:center;padding:24px;font-size:.75rem;color:var(--mu)}
 <body>
 <div class="container">
   <div class="header">
-    <div class="logo">NANZZ<span>VIDEO</span></div>
+    <div class="logo">TIYANZ<span>VIDEO</span></div>
     <div class="controls">
       <form method="GET" style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <select name="sort" onchange="this.form.submit()">
@@ -141,7 +141,7 @@ footer{text-align:center;padding:24px;font-size:.75rem;color:var(--mu)}
   <div class="grid" id="grid"></div>
   <div class="empty" id="loading">Loading...</div>
   <div class="pages" id="pages"></div>
-  <footer>NANZZ VIDEO ARCHIVE &copy; 2026</footer>
+  <footer>TIYANZ VIDEO ARCHIVE &copy; 2026</footer>
 </div>
 
 <script>

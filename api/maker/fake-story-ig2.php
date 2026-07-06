@@ -11,7 +11,7 @@ header('Content-Type: image/png');
 set_time_limit(60);
 
 // ========== CREDIT ==========
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 
 $name = $_POST['name'] ?? $_GET['name'] ?? 'User';
 $text = $_POST['text'] ?? $_GET['text'] ?? '';

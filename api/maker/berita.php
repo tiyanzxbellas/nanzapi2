@@ -9,15 +9,15 @@ ini_set('display_errors', '0');
 
 header('Content-Type: image/png');
 
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(30);
 
 $text = trim($_GET['text'] ?? 'Jokowi mencuri 19jt lapangan pekerjaan dari anaknya');
 $imageUrl = trim($_GET['url'] ?? 'https://www.upload.ee/image/19400325/images.webp');
 
-$BACKGROUND_URL = 'https://nanzzcode.my.id/cdn/berita.png';
-$PRESENTER_URL  = 'https://nanzzcode.my.id/cdn/presenter.png';
-$FONT_URL       = 'https://nanzzcode.my.id/cdn/Arial-bold.ttf';
+$BACKGROUND_URL = 'https://tiyanzcode.my.id/cdn/berita.png';
+$PRESENTER_URL  = 'https://tiyanzcode.my.id/cdn/presenter.png';
+$FONT_URL       = 'https://tiyanzcode.my.id/cdn/Arial-bold.ttf';
 
 $TV_X = 353; $TV_Y = 59; $TV_W = 1149; $TV_H = 580;
 
@@ -99,6 +99,6 @@ try {
     imagepng($canvas); imagedestroy($canvas);
 } catch (Exception $e) {
     header('Content-Type: application/json');
-    echo json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
+    echo json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
 }
 ?>

@@ -12,7 +12,7 @@ $query = $_GET['q'] ?? '';
 if (empty($query)) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => 'Parameter q wajib diisi'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
@@ -38,7 +38,7 @@ curl_close($ch);
 if ($http_code !== 200 || empty($response)) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => "Gagal mendapatkan response (HTTP {$http_code})"
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
@@ -88,7 +88,7 @@ foreach ($lyricItems as $item) {
 
 echo json_encode([
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'result' => [
         'total' => count($results),
         'data' => $results

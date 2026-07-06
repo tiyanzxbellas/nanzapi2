@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - YouTube Search + Audio Download
+// Deskripsi: Tiyanz API - YouTube Search + Audio Download
 // Contoh: {"q": "multo"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param q Text Input - Kata kunci pencarian atau URL YouTube
@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 $q = $_GET['q'] ?? '';
 if (empty($q)) {
-    die(json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => 'Gunakan ?q= untuk kata kunci/URL']));
+    die(json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => 'Gunakan ?q= untuk kata kunci/URL']));
 }
 
 $ua = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
@@ -49,7 +49,7 @@ if (preg_match('/(?:youtu\.be\/|v\/|vi\/|u\/\w\/|embed\/|shorts\/|watch\?v=|&v=)
 }
 
 if (empty($video_id)) {
-    die(json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => 'Video tidak ditemukan']));
+    die(json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => 'Video tidak ditemukan']));
 }
 
 // Download via ht.flvto.online
@@ -129,7 +129,7 @@ if (empty($download_url)) {
 
 if (empty($download_url)) {
     die(json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal mendapatkan URL download. Coba lagi nanti.',
         'debug' => [
@@ -141,7 +141,7 @@ if (empty($download_url)) {
 
 // Output JSON dengan download URL
 echo json_encode([
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'status' => true,
     'input' => ['q' => $q, 'video_id' => $video_id],
     'result' => [

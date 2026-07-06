@@ -15,7 +15,7 @@ header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-W
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 
 // ========== CONFIG ==========
 define('CLIENT_ID', 'KKzJxmw11tYpCs6T24P4uUYhqmjalG6M');
@@ -88,7 +88,7 @@ $input = [
 if (empty($query)) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'code' => 400,
         'msg' => '❌ Parameter q (query) wajib diisi!',
         'input' => $input,
@@ -112,7 +112,7 @@ $data = fetchWithRetry($url);
 if (!$data) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'code' => 503,
         'msg' => '❌ Gagal mengambil data dari SoundCloud API',
         'input' => $input
@@ -218,7 +218,7 @@ foreach ($collection as $playlist) {
 // ========== BUILD RESULT ==========
 $result = [
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => $input,
     'result' => [
         'metadata' => [

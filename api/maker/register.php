@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - Daftar Online Card Generator (GD Library)
+// Deskripsi: Tiyanz API - Daftar Online Card Generator (GD Library)
 // Contoh: {"nama": "Rizky", "umur": "25"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param nama Text Input - Nama lengkap
@@ -28,7 +28,7 @@ $green = imagecolorallocate($bg, 57, 255, 20);
 // Download font
 $font_local = sys_get_temp_dir() . '/cormorant.ttf';
 if (!file_exists($font_local)) {
-    $ch = curl_init('https://nanzzcode.my.id/CormorantGaramond-SemiBold.ttf');
+    $ch = curl_init('https://tiyanzcode.my.id/CormorantGaramond-SemiBold.ttf');
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_TIMEOUT => 10, CURLOPT_SSL_VERIFYPEER => false]);
     $font_data = curl_exec($ch); curl_close($ch);
     if ($font_data) file_put_contents($font_local, $font_data);

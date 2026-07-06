@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(120);
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 $quality = $_POST['quality'] ?? $_GET['quality'] ?? '4k';
 
 if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {

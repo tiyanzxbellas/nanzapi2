@@ -66,7 +66,7 @@ $cowo = getImg($pair['cowo']);
 if ($cewe['code'] !== 200 || $cowo['code'] !== 200) {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => true,
         'result' => $pair
     ]);
@@ -90,7 +90,7 @@ imagecopyresampled($canvas, $cowoImg, 0, 0, 0, 0, $mw, $maxH, $mw, $mh);
 imagecopyresampled($canvas, $ceweImg, $mw, 0, 0, 0, $cw, $maxH, $cw, $ch);
 
 header('Content-Type: image/png');
-header('X-Creator: Nanzz');
+header('X-Creator: Tiyanz');
 imagepng($canvas);
 imagedestroy($canvas);
 imagedestroy($ceweImg);

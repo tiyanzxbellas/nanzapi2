@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - MyTuner Radio Country List
+// Deskripsi: Tiyanz API - MyTuner Radio Country List
 // Contoh: {"country": "indonesia"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param country (indonesia|united-states|japan|singapore|malaysia|thailand|south-korea|india) Nama Negara
@@ -14,13 +14,13 @@ header("Access-Control-Allow-Headers: Content-Type");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(30);
 
 $country = trim($_GET['country'] ?? 'indonesia');
 
 if (empty($country)) {
-    $data = ['status' => false, 'creator' => 'Nanzz', 'input' => ['country' => null], 'result' => ['msg' => 'Parameter country diperlukan']];
+    $data = ['status' => false, 'creator' => 'Tiyanz', 'input' => ['country' => null], 'result' => ['msg' => 'Parameter country diperlukan']];
     $keysToRemove = ['creator', 'Creator', 'author', 'Author'];
     $data = removeKeysRecursive($data, $keysToRemove);
     echo json_encode($data, JSON_PRETTY_PRINT);
@@ -44,7 +44,7 @@ function grab($url) {
 $html = grab($url);
 
 if (empty($html)) {
-    $data = ['status' => false, 'creator' => 'Nanzz', 'input' => ['country' => $country], 'result' => ['msg' => 'Gagal fetch data']];
+    $data = ['status' => false, 'creator' => 'Tiyanz', 'input' => ['country' => $country], 'result' => ['msg' => 'Gagal fetch data']];
     $keysToRemove = ['creator', 'Creator', 'author', 'Author'];
     $data = removeKeysRecursive($data, $keysToRemove);
     echo json_encode($data, JSON_PRETTY_PRINT);
@@ -77,7 +77,7 @@ $stations = array_values(array_unique($stations, SORT_REGULAR));
 
 $data = [
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['country' => $country],
     'result' => [
         'country' => $country,

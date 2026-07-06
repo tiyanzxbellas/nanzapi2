@@ -9,7 +9,7 @@ ini_set('display_errors', '0');
 header('Content-Type: image/jpeg');
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(60);
 
 $text = $_GET['text'] ?? 'Gw tuh sebenarnya ultramen';
@@ -120,6 +120,6 @@ try {
     
 } catch (Exception $e) {
     header('Content-Type: application/json');
-    echo json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
+    echo json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
 }
 ?>

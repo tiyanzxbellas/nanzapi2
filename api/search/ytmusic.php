@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - YouTube Music Search (Official YT Music API)
+// Deskripsi: Tiyanz API - YouTube Music Search (Official YT Music API)
 // Contoh: {"q": "lovely"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param q Kata Kunci Pencarian
@@ -14,14 +14,14 @@ header("Access-Control-Allow-Headers: Content-Type");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(20);
 
 $query = trim($_GET['q'] ?? '');
 
 if (empty($query)) {
-    $data = ['status' => false, 'creator' => 'Nanzz', 'input' => ['q' => null], 'result' => ['msg' => 'Parameter q diperlukan']];
-    echo json_encode(removeKeysRecursive($data, ['creator','Creator','author','Author']) + ['creator' => 'Nanzz'], JSON_PRETTY_PRINT);
+    $data = ['status' => false, 'creator' => 'Tiyanz', 'input' => ['q' => null], 'result' => ['msg' => 'Parameter q diperlukan']];
+    echo json_encode(removeKeysRecursive($data, ['creator','Creator','author','Author']) + ['creator' => 'Tiyanz'], JSON_PRETTY_PRINT);
     exit;
 }
 
@@ -145,7 +145,7 @@ $total = count($songs) + count($videos) + count($artists) + count($albums) + cou
 
 $data = [
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['q' => $query],
     'result' => [
         'query' => $query,
@@ -160,7 +160,7 @@ $data = [
     ]
 ];
 
-echo json_encode(removeKeysRecursive($data, ['creator','Creator','author','Author']) + ['creator' => 'Nanzz'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+echo json_encode(removeKeysRecursive($data, ['creator','Creator','author','Author']) + ['creator' => 'Tiyanz'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
 function removeKeysRecursive($array, $keysToRemove) {
     if (!is_array($array)) return $array;

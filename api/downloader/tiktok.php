@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - TikTok Downloader via TikTokIO
+// Deskripsi: Tiyanz API - TikTok Downloader via TikTokIO
 // Contoh: {"url": "https://vt.tiktok.com/ZSQCLU6Le/"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param url URL Video TikTok (vt.tiktok.com / tiktok.com / vm.tiktok.com)
@@ -16,13 +16,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 $url = isset($_GET['url']) ? trim($_GET['url']) : '';
 
 if (empty($url)) {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Parameter "url" wajib diisi']]);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Parameter "url" wajib diisi']]);
     exit;
 }
 
 // Validasi URL TikTok
 if (!preg_match('/tiktok\.com/', $url)) {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'URL harus dari TikTok (tiktok.com)']]);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'URL harus dari TikTok (tiktok.com)']]);
     exit;
 }
 
@@ -53,7 +53,7 @@ $html = curl_exec($ch);
 curl_close($ch);
 
 if (empty($html)) {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Gagal mengambil data dari TikTokIO']]);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Gagal mengambil data dari TikTokIO']]);
     exit;
 }
 
@@ -95,7 +95,7 @@ foreach ($linkNodes as $link) {
 
 echo json_encode([
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['url' => $url],
     'result' => [
         'thumbnail' => $thumbnail,

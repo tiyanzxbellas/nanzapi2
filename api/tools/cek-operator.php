@@ -14,7 +14,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 
 // ========== KODE UTAMA ==========
 $number = isset($_GET['number']) ? trim($_GET['number']) : '';
@@ -23,7 +23,7 @@ $number = isset($_GET['number']) ? trim($_GET['number']) : '';
 if (empty($number)) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => 'Phone number is required. Example: ?number=6283133096767'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
     exit;
@@ -67,7 +67,7 @@ if (substr($number, 0, 2) !== '62') {
 if (strlen($number) < 10 || strlen($number) > 15) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => 'Invalid phone number length. Must be 10-15 digits after country code.',
         'input' => ['number' => $original_number]
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -125,7 +125,7 @@ $e164_format = '+' . $country_code . $national_number;
 // ========== SUSUN RESPONSE ==========
 $data = [
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['number' => $original_number],
     'result' => [
         'informasi_dasar' => [
@@ -176,7 +176,7 @@ $data = [
 // Cleanup keys
 $keysToRemove = ['creator', 'Creator', 'author', 'Author'];
 $data = removeKeysRecursive($data, $keysToRemove);
-$data['creator'] = 'Nanzz';
+$data['creator'] = 'Tiyanz';
 
 echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 

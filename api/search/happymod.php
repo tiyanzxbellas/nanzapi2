@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Fitur Happymod Search Premium via Nanzz Engine.
+// Deskripsi: Fitur Happymod Search Premium via Tiyanz Engine.
 // Contoh: {"q": "subway surfers"}
 
 header('Content-Type: application/json; charset=utf-8');
@@ -16,7 +16,7 @@ if (empty($query)) {
 }
 
 if (empty($query)) {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'message' => 'Parameter q wajib diisi'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'message' => 'Parameter q wajib diisi'], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
@@ -53,17 +53,17 @@ if (json_last_error() === JSON_ERROR_NONE && is_array($data)) {
     $final_result = ['message' => 'Gagal terhubung ke server hulu (HTTP ' . $http_code . ')'];
 }
 
-function clean_Nanzz_watermark(&$item) {
+function clean_Tiyanz_watermark(&$item) {
     if (is_array($item)) {
         unset($item['creator'], $item['author'], $item['attribution'], $item['code']);
-        foreach ($item as &$value) { if (is_array($value)) { clean_Nanzz_watermark($value); } }
+        foreach ($item as &$value) { if (is_array($value)) { clean_Tiyanz_watermark($value); } }
     }
 }
-clean_Nanzz_watermark($final_result);
+clean_Tiyanz_watermark($final_result);
 
 echo json_encode([
     'status'  => $final_status,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'result'  => $final_result
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 ?>

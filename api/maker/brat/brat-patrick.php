@@ -322,7 +322,7 @@ try {
     header('Content-Type: application/json');
 
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => $e->getMessage()
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

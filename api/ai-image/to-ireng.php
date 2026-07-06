@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(180);
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 $imageUrl = $_GET['url'] ?? '';
 $hasFile = isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK;
 $prompt = 'Make the skin extremely dark black, very very dark brown like charcoal. Darken the skin to the maximum level. Keep all other elements completely unchanged - clothes, background, hair, eyes, lips, accessories, lighting, everything except skin tone. Only the skin should become very dark black. Make it look natural dark skin, not painted.';

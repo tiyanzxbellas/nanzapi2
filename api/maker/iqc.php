@@ -18,7 +18,7 @@ if (!$text) {
     header('Content-Type: application/json');
 
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Parameter text diperlukan'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -55,7 +55,7 @@ if (!$image || $httpCode != 200) {
     header('Content-Type: application/json');
 
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal mengambil gambar'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - MyTuner Radio Stream Extractor
+// Deskripsi: Tiyanz API - MyTuner Radio Stream Extractor
 // Contoh: {"url": "https://mytuner-radio.com/radio/prambors-1022-fm-432/"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param url URL Stasiun Radio MyTuner
@@ -13,13 +13,13 @@ header("Access-Control-Allow-Headers: Content-Type");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(30);
 
 $url = trim($_GET['url'] ?? '');
 
 if (empty($url)) {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['msg' => 'Parameter url diperlukan']]);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['msg' => 'Parameter url diperlukan']]);
     exit;
 }
 
@@ -58,7 +58,7 @@ function crack($ivHex, $cipherB64, $ts) {
 
 $html = grab($url);
 if (empty($html)) {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['msg' => 'Gagal fetch halaman']]);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['msg' => 'Gagal fetch halaman']]);
     exit;
 }
 
@@ -90,7 +90,7 @@ $name = trim($name);
 
 echo json_encode([
     'status' => !empty($streams),
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['url' => $url],
     'result' => [
         'name' => $name,

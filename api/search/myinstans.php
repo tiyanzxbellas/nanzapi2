@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - Myinstants Search Sounds
+// Deskripsi: Tiyanz API - Myinstants Search Sounds
 // Contoh: {"q": "vine boom", "page": "1"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param q Text Input - Kata kunci pencarian suara (contoh: vine boom, bruh, anime wow, fart)
@@ -15,7 +15,7 @@ $page = intval($_GET['page'] ?? 1);
 
 if (empty($q)) {
     die(json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gunakan ?q=vine+boom',
         'example' => '?q=vine+boom&page=1'
@@ -35,7 +35,7 @@ curl_setopt_array($ch, [
 $html = curl_exec($ch); curl_close($ch);
 
 if (!$html) {
-    die(json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => 'Gagal scrape']));
+    die(json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => 'Gagal scrape']));
 }
 
 $sounds = [];
@@ -55,7 +55,7 @@ foreach ($m as $item) {
 }
 
 echo json_encode([
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'status' => true,
     'input' => [
         'q' => $q,

@@ -11,7 +11,7 @@ set_time_limit(120);
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 $prompt = $_POST['prompt'] ?? $_GET['prompt'] ?? '';

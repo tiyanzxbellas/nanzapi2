@@ -67,7 +67,7 @@ clean_xemoz_watermark($final_result);
 
 echo json_encode([
     'status'  => $final_status,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'result'  => $final_result
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 ?>

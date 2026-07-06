@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - AN1.com Search Scraper
+// Deskripsi: Tiyanz API - AN1.com Search Scraper
 // Contoh: {"query": "Roblox"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param query Kata kunci pencarian
@@ -16,11 +16,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 $query = isset($_GET['query']) ? trim($_GET['query']) : '';
 
 if (empty($query)) {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Parameter "query" wajib diisi']]);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Parameter "query" wajib diisi']]);
     exit;
 }
 
-$cookieFile = sys_get_temp_dir() . '/nanzz_an1_search.txt';
+$cookieFile = sys_get_temp_dir() . '/tiyanz_an1_search.txt';
 if (file_exists($cookieFile)) unlink($cookieFile);
 
 $ua = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36';
@@ -134,7 +134,7 @@ foreach ($pageNodes as $btn) {
 
 echo json_encode([
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['query' => $query],
     'result' => [
         'query' => $query,

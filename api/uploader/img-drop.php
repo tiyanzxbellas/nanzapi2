@@ -9,7 +9,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {

@@ -10,7 +10,7 @@ set_time_limit(60);
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 // Cek dulu limit server

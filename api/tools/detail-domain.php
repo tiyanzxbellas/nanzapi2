@@ -9,7 +9,7 @@ ini_set('display_errors', '0');
 header('Content-Type: application/json; charset=utf-8');
 
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 $domain = $_GET['domain'] ?? '';

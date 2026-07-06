@@ -10,7 +10,7 @@ set_time_limit(30);
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 $query = $_GET['q'] ?? '';

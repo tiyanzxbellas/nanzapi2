@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(30);
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 $text = $_GET['text'] ?? '';
 $voiceType = $_GET['voice'] ?? 'laki';
 

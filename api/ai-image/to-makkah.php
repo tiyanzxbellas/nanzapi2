@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(180);
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 $imageUrl = $_GET['url'] ?? '';
 $hasFile = isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK;
 $prompt = 'Transform this person: Dress them in white ihram clothing (two white unstitched sheets). Place them in Mecca, in front of the Kaaba, with the Grand Mosque (Masjid al-Haram) background. Keep the persons face recognizable. Add Islamic atmosphere with warm golden lighting. Do not change the face, only change clothes and background to Mecca.';

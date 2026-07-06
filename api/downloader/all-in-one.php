@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - Multi-Platform Media Downloader (TikTok + Instagram + YouTube + X + Spotify + Pinterest)
+// Deskripsi: Tiyanz API - Multi-Platform Media Downloader (TikTok + Instagram + YouTube + X + Spotify + Pinterest)
 // Contoh: {"url": "https://vt.tiktok.com/ZSQCLU6Le/"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param url URL Video/Musik (TikTok/Instagram/YouTube/X/Spotify/Pinterest)
@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 $url = isset($_GET['url']) ? trim($_GET['url']) : '';
 
 if (empty($url)) {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Parameter "url" wajib diisi']]);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Parameter "url" wajib diisi']]);
     exit;
 }
 
@@ -81,7 +81,7 @@ elseif (preg_match('/instagram\.com/', $url)) {
     curl_close($ch);
     
     $data = json_decode($response, true);
-    if (!$data || !$data['ok']) { echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Gagal mengambil data Instagram']]); exit; }
+    if (!$data || !$data['ok']) { echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Gagal mengambil data Instagram']]); exit; }
     
     $result['thumbnail'] = $data['thumbnail'] ?? '';
     $result['title'] = $data['title'] ?? '';
@@ -96,7 +96,7 @@ elseif (preg_match('/youtu\.be|youtube\.com/', $url)) {
     
     preg_match('/youtu\.be\/([A-Za-z0-9_-]+)/', $url, $m) || preg_match('/watch\?v=([A-Za-z0-9_-]+)/', $url, $m) || preg_match('/\/embed\/([A-Za-z0-9_-]+)/', $url, $m) || preg_match('/\/shorts\/([A-Za-z0-9_-]+)/', $url, $m);
     $vid = $m[1] ?? '';
-    if (empty($vid)) { echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Gagal ekstrak ID']]); exit; }
+    if (empty($vid)) { echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Gagal ekstrak ID']]); exit; }
     
     $ch = curl_init();
     curl_setopt_array($ch, [
@@ -108,7 +108,7 @@ elseif (preg_match('/youtu\.be|youtube\.com/', $url)) {
     ]);
     $response = curl_exec($ch); curl_close($ch);
     $data = json_decode($response, true);
-    if (!$data || $data['status'] != 1) { echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Gagal YouTube']]); exit; }
+    if (!$data || $data['status'] != 1) { echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Gagal YouTube']]); exit; }
     
     $d = $data['data'];
     $result['title'] = $d['title'] ?? ''; $result['thumbnail'] = $d['thumbnail'] ?? ''; $result['duration'] = gmdate('i:s', $d['duration'] ?? 0); $result['author'] = $d['user_item']['nickname'] ?? '';
@@ -129,7 +129,7 @@ elseif (preg_match('/x\.com|twitter\.com/', $url)) {
     ]);
     $response = curl_exec($ch); curl_close($ch);
     $data = json_decode($response, true);
-    if (!$data || $data['status'] !== 'ok') { echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Gagal X/Twitter']]); exit; }
+    if (!$data || $data['status'] !== 'ok') { echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Gagal X/Twitter']]); exit; }
     
     $dom = new DOMDocument(); libxml_use_internal_errors(true); @$dom->loadHTML(mb_convert_encoding($data['data'], 'HTML-ENTITIES', 'UTF-8')); libxml_clear_errors(); $xpath = new DOMXPath($dom);
     $result['thumbnail'] = $xpath->evaluate('string(//div[contains(@class, "thumbnail")]//img/@src)');
@@ -150,7 +150,7 @@ elseif (preg_match('/spotify\.com/', $url)) {
     curl_setopt_array($ch, [CURLOPT_RETURNTRANSFER => true, CURLOPT_POST => true, CURLOPT_POSTFIELDS => json_encode(['url' => $url]), CURLOPT_TIMEOUT => 30, CURLOPT_SSL_VERIFYPEER => false, CURLOPT_USERAGENT => $ua, CURLOPT_HTTPHEADER => ['Content-Type: application/json', 'Origin: https://musicfab.io', 'Referer: https://musicfab.io/']]);
     $response = curl_exec($ch); curl_close($ch);
     $data = json_decode($response, true); $m = $data['data']['metadata'] ?? null;
-    if (!$m || empty($m['download'])) { echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Gagal Spotify']]); exit; }
+    if (!$m || empty($m['download'])) { echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Gagal Spotify']]); exit; }
     $result['title'] = $m['name'] ?? ''; $result['artist'] = $m['artist'] ?? ''; $result['image'] = $m['image'] ?? '';
     $result['media'] = [['type' => 'mp3', 'url' => $m['download']]];
 }
@@ -173,7 +173,7 @@ elseif (preg_match('/pin\.it|pinterest\.com/', $url)) {
     curl_close($ch);
     
     $data = json_decode($response, true);
-    if (!$data) { echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Gagal Pinterest']]); exit; }
+    if (!$data) { echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Gagal Pinterest']]); exit; }
     
     $result['title'] = $data['title'] ?? '';
     $result['description'] = $data['description'] ?? '';
@@ -189,9 +189,9 @@ elseif (preg_match('/pin\.it|pinterest\.com/', $url)) {
     $result['media'] = $media;
 }
 else {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'result' => ['error' => 'Platform tidak didukung']]);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'result' => ['error' => 'Platform tidak didukung']]);
     exit;
 }
 
-echo json_encode(['status' => true, 'creator' => 'Nanzz', 'input' => ['url' => $url], 'result' => $result], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+echo json_encode(['status' => true, 'creator' => 'Tiyanz', 'input' => ['url' => $url], 'result' => $result], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 ?>

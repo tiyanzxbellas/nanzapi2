@@ -10,7 +10,7 @@ set_time_limit(300);
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 $url = $_GET['url'] ?? '';

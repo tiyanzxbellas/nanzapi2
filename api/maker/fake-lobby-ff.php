@@ -11,7 +11,7 @@ header('Content-Type: image/png');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
@@ -41,7 +41,7 @@ if ($httpCode === 200 && $imageData) {
 } else {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal generate FF Lobby'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

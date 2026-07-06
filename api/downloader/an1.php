@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - Scraper Detail + Download AN1.com by ID
+// Deskripsi: Tiyanz API - Scraper Detail + Download AN1.com by ID
 // Contoh: {"id": "3528"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param id ID Game AN1.com
@@ -14,7 +14,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 
 // ========== KODE UTAMA ==========
 function scrapeURL($url) {
@@ -40,8 +40,8 @@ function scrapeURL($url) {
             'Referer: https://www.google.com/',
             'Origin: https://an1.com'
         ],
-        CURLOPT_COOKIEFILE => sys_get_temp_dir() . '/nanzz_an1_cookie.txt',
-        CURLOPT_COOKIEJAR => sys_get_temp_dir() . '/nanzz_an1_cookie.txt',
+        CURLOPT_COOKIEFILE => sys_get_temp_dir() . '/tiyanz_an1_cookie.txt',
+        CURLOPT_COOKIEJAR => sys_get_temp_dir() . '/tiyanz_an1_cookie.txt',
         CURLOPT_ENCODING => 'gzip, deflate, br'
     ]);
     
@@ -231,7 +231,7 @@ $id = isset($_GET['id']) ? trim($_GET['id']) : '';
 if (empty($id) || !is_numeric($id)) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'input' => ['id' => $id],
         'result' => ['error' => 'Parameter "id" wajib diisi dengan angka']
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -268,7 +268,7 @@ if (!$mainHtml) {
     if ($dwResult['error']) {
         echo json_encode([
             'status' => false,
-            'creator' => 'Nanzz',
+            'creator' => 'Tiyanz',
             'input' => ['id' => $id],
             'result' => ['error' => 'Game dengan ID ' . $id . ' tidak ditemukan']
         ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -316,14 +316,14 @@ $mergedResult['thumbnail'] = !empty($downloadData['thumbnail']) ? $downloadData[
 
 $data = [
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['id' => $id],
     'result' => $mergedResult
 ];
 
 $keysToRemove = ['creator', 'Creator', 'author', 'Author'];
 $data = removeKeysRecursive($data, $keysToRemove);
-$data['creator'] = 'Nanzz';
+$data['creator'] = 'Tiyanz';
 
 echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
