@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Catbox.moe Uploader (FIX 412)
+// Deskripsi: Catbox.moe Uploader (FIX)
 // Contoh: {"file": "pilih_file.jpg"}
 
 header('Content-Type: application/json; charset=utf-8');
@@ -24,9 +24,10 @@ try {
         throw new Exception('File terlalu besar (max 200MB)');
     }
 
-    // ========== METHOD 1: PAKAI CURLFILE (REKOMENDASI) ==========
+    // ========== UPLOAD KE CATBOX ==========
     $postData = [
         'reqtype' => 'fileupload',
+        // 'userhash' => '####', // opsional: tambahkan jika punya akun
         'fileToUpload' => new CURLFile($fileTmp, mime_content_type($fileTmp), $fileName)
     ];
 
@@ -34,13 +35,12 @@ try {
     
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData); // CURLFile otomatis bikin multipart
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt($ch, CURLOPT_TIMEOUT, 60);
     curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
     
-    // HEADER MINIMALIS
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
         'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
         'Accept: */*',
@@ -64,13 +64,14 @@ try {
 
     $url = trim($response);
     
-    // Cek apakah response berupa HTML error
-    if (strpos($url, '<html') !== false || strpos($url, 'error') !== false) {
-        throw new Exception('Upload failed: ' . substr($url, 0, 200));
+    // Validasi response
+    if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
+        throw new Exception('Upload gagal: ' . $url);
     }
 
-    if (empty($url) || !str_starts_with($url, 'https://')) {
-        throw new Exception('Upload gagal: ' . $url);
+    // Cek apakah response error dari Catbox
+    if (strpos(strtolower($url), 'error') !== false || strpos($url, 'http') === false) {
+        throw new Exception('Catbox Error: ' . $url);
     }
 
     echo json_encode(array_merge($credit, [
