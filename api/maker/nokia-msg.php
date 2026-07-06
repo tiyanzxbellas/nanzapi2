@@ -2,7 +2,7 @@
 error_reporting(0);
 ini_set('display_errors', '0');
 // Deskripsi: Nokia Chat Generator (Auto Fit + Alignment)
-// Contoh: {"sender":"Nanzz","pesan":"Halo bro! apa kabar?"}
+// Contoh: {"sender":"Tiyanz","pesan":"Halo bro! apa kabar?"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param sender Nama Pengirim
 // @param pesan Isi Pesan
@@ -11,12 +11,12 @@ header('Content-Type: image/jpeg');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
 
-$sender = $_GET['sender'] ?? 'Nanzz';
+$sender = $_GET['sender'] ?? 'Tiyanz';
 $pesan = $_GET['pesan'] ?? 'Halo bro!';
 
 // ==================== SHORTCUT ====================
@@ -42,8 +42,8 @@ $senderBawahOffsetX = 0;
 $senderBawahOffsetY = 14;
 // =================================================
 
-$bgUrl = 'https://nanzzcode.my.id/nokia.jpg';
-$fontUrl = 'https://nanzzcode.my.id/PixelifySans.ttf';
+$bgUrl = 'https://tiyanzcode.my.id/nokia.jpg';
+$fontUrl = 'https://tiyanzcode.my.id/PixelifySans.ttf';
 
 function downloadBuffer($url) {
     $ch = curl_init();
@@ -193,7 +193,7 @@ try {
 } catch (Exception $e) {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => $e->getMessage()
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

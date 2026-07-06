@@ -10,7 +10,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);

@@ -53,7 +53,7 @@ curl_close($ch);
 
 if ($http_code === 200 && !empty($img)) {
     header('Content-Type: ' . ($contentType ?: 'image/jpeg'));
-    header('X-Creator: Nanzz');
+    header('X-Creator: Tiyanz');
     echo $img;
 } else {
     header('Location: ' . $randomImage, true, 302);

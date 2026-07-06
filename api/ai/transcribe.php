@@ -9,7 +9,7 @@ header('Content-Type: application/json; charset=utf-8');
 set_time_limit(120);
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 
 $url = $_GET['url'] ?? '';
 

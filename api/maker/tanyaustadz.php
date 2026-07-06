@@ -10,7 +10,7 @@ header('Content-Type: image/png');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
@@ -21,8 +21,8 @@ $text = trim($_GET['text'] ?? 'halo');
 // BACKGROUND & FONT
 // ===============================
 
-$BACKGROUND_URL = 'https://nanzzcode.my.id/tanyaustadz.jpg';
-$FONT_URL       = 'https://nanzzcode.my.id/Roboto.ttf';
+$BACKGROUND_URL = 'https://tiyanzcode.my.id/tanyaustadz.jpg';
+$FONT_URL       = 'https://tiyanzcode.my.id/Roboto.ttf';
 
 // ===============================
 // TEXT AREA
@@ -237,7 +237,7 @@ try {
     header('Content-Type: application/json');
 
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => $e->getMessage()
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

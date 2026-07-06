@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - Multi Uploader (Gobox + Filegoat + Uguu + Upload.ee)
+// Deskripsi: Tiyanz API - Multi Uploader (Gobox + Filegoat + Uguu + Upload.ee)
 // Contoh: POST multipart/form-data dengan field "file"
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // POST file: File yang ingin diupload
@@ -14,7 +14,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST' || empty($_FILES['file'])) {
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'message' => 'File wajib diupload via POST multipart/form-data dengan field "file"']);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'message' => 'File wajib diupload via POST multipart/form-data dengan field "file"']);
     exit;
 }
 
@@ -199,7 +199,7 @@ $results = [
 
 echo json_encode([
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input_name' => $file['name'],
     'results' => $results
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

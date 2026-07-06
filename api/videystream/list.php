@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - VideyStream Video List Scraper
+// Deskripsi: Tiyanz API - VideyStream Video List Scraper
 // Contoh: {"sort": "terbaru", "page": 1}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param sort (terbaru|trending|lama) Urutan
@@ -15,7 +15,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(20);
 
 $sort = trim($_GET['sort'] ?? 'terbaru');
@@ -23,7 +23,7 @@ $page = max(1, (int)($_GET['page'] ?? 1));
 
 $data = [
     'status' => false,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['sort' => $sort, 'page' => $page],
     'result' => null
 ];

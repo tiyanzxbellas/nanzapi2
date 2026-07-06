@@ -10,7 +10,7 @@ header('Content-Type: video/mp4');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
@@ -20,7 +20,7 @@ $text = $_GET['text'] ?? 'Hello world!';
 if (!$text) {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Parameter text diperlukan'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -51,7 +51,7 @@ if ($httpCode === 200 && $videoData) {
 } else {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal generate brat video'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

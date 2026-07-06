@@ -6,7 +6,7 @@ ini_set('display_errors', '0');
 // Contoh: {"number": "6283124609929"}
 */
 
-// Creator: Nanzz
+// Creator: Tiyanz
 header('Content-Type: application/json');
 
 $number = isset($_GET['number']) ? $_GET['number'] : '';

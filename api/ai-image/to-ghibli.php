@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(180);
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 $imageUrl = $_GET['url'] ?? '';
 $hasFile = isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK;
 $prompt = 'Transform this person into Studio Ghibli anime style. Give them large expressive anime eyes, soft features, and that signature Ghibli art style. Place them in a beautiful Ghibli-style background with soft watercolor-like colors, gentle lighting, and magical atmosphere. Keep the face recognizable but in Ghibli art style. Add some Ghibli elements like floating spirits, lush nature, or whimsical details. Do not change the person completely, just apply Ghibli art filter.';

@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(120);
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 $pixelLevel = $_REQUEST['level'] ?? 30;
 $hasFile = isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK;
 $imageUrl = $_REQUEST['url'] ?? '';

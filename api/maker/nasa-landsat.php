@@ -9,7 +9,7 @@ ini_set('display_errors', '0');
 header('Content-Type: image/jpeg');
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(60);
 
 $name = $_GET['name'] ?? 'NASA';

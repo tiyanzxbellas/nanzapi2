@@ -14,7 +14,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(60);
 
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 
 $text = trim($_GET['text'] ?? '');
 $image = trim($_GET['url'] ?? '');
@@ -26,7 +26,7 @@ $read = filter_var($_GET['read'] ?? 'true', FILTER_VALIDATE_BOOLEAN);
 
 if (!$text) {
     header('Content-Type: application/json');
-    echo json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => 'Parameter text diperlukan'], JSON_PRETTY_PRINT);
+    echo json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => 'Parameter text diperlukan'], JSON_PRETTY_PRINT);
     exit;
 }
 
@@ -55,7 +55,7 @@ curl_close($ch);
 
 if (!$result) {
     header('Content-Type: application/json');
-    echo json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => 'Gagal generate gambar'], JSON_PRETTY_PRINT);
+    echo json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => 'Gagal generate gambar'], JSON_PRETTY_PRINT);
     exit;
 }
 

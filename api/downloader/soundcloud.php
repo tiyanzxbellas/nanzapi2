@@ -7,7 +7,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(60);
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 $url = $_GET['url'] ?? '';
 
 if (empty($url)) {

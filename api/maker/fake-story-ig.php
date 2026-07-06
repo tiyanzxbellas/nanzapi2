@@ -15,7 +15,7 @@ $text = $_POST['text'] ?? $_GET['text'] ?? '';
 if (empty($text)) {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Parameter text wajib diisi'
     ]);
@@ -159,7 +159,7 @@ foreach ($lines as $i => $line) {
 
 // Output langsung gambar
 header('Content-Type: image/png');
-header('X-Creator: Nanzz');
+header('X-Creator: Tiyanz');
 imagepng($canvas);
 imagedestroy($canvas);
 imagedestroy($bg);

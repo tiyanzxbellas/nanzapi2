@@ -1,4 +1,4 @@
-# NanzzAPI — Vercel Deployment
+# TiyanzApi — Vercel Deployment
 
 Project ini sudah direstrukturisasi agar bisa dijalankan di Vercel menggunakan
 community PHP runtime ([vercel-community/php](https://github.com/vercel-community/php)).

@@ -9,7 +9,7 @@ header('Content-Type: image/jpeg');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
@@ -72,7 +72,7 @@ if ($imageData) {
 } else {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal mengambil gambar'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

@@ -9,7 +9,7 @@ header('Content-Type: audio/mpeg');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
@@ -44,7 +44,7 @@ if ($httpCode === 200 && $audioData) {
 } else {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal mendapatkan audio JKT48'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

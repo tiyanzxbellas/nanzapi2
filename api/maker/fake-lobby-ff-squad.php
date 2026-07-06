@@ -2,7 +2,7 @@
 error_reporting(0);
 ini_set('display_errors', '0');
 // Deskripsi: Squad Name Generator
-// Contoh: {"nama1":"Nanzz","nama2":"Azzam","nama3":"Rizky","nama4":"Budi"}
+// Contoh: {"nama1":"Tiyanz","nama2":"Azzam","nama3":"Rizky","nama4":"Budi"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param nama1 Nama 1
 // @param nama2 Nama 2
@@ -13,12 +13,12 @@ header('Content-Type: image/png');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
 
-$nama1 = trim($_GET['nama1'] ?? 'Nanzz');
+$nama1 = trim($_GET['nama1'] ?? 'Tiyanz');
 $nama2 = trim($_GET['nama2'] ?? 'Azzam');
 $nama3 = trim($_GET['nama3'] ?? 'Rizky');
 $nama4 = trim($_GET['nama4'] ?? 'Budi');
@@ -27,8 +27,8 @@ $nama4 = trim($_GET['nama4'] ?? 'Budi');
 // BACKGROUND & FONT
 // ===============================
 
-$BACKGROUND_URL = 'https://nanzzcode.my.id/squad.jpg';
-$FONT_URL = 'https://nanzzcode.my.id/CormorantGaramond-SemiBold.ttf';
+$BACKGROUND_URL = 'https://tiyanzcode.my.id/squad.jpg';
+$FONT_URL = 'https://tiyanzcode.my.id/CormorantGaramond-SemiBold.ttf';
 
 // ===============================
 // NAMA 1
@@ -278,7 +278,7 @@ try {
     header('Content-Type: application/json');
 
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => $e->getMessage()
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

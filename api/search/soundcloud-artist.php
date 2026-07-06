@@ -14,7 +14,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 
 // ========== CONFIG ==========
 define('CLIENT_ID', 'KKzJxmw11tYpCs6T24P4uUYhqmjalG6M');
@@ -84,7 +84,7 @@ if (isset($_GET['url']) && !empty($_GET['url'])) {
     } else {
         echo json_encode([
             'status' => false,
-            'creator' => 'Nanzz',
+            'creator' => 'Tiyanz',
             'code' => 400,
             'msg' => '❌ URL SoundCloud tidak valid!',
             'example' => '?url=https://soundcloud.com/jahseh-onfroy'
@@ -119,7 +119,7 @@ if ($resolveData && isset($resolveData['id'])) {
     } else {
         echo json_encode([
             'status' => false,
-            'creator' => 'Nanzz',
+            'creator' => 'Tiyanz',
             'code' => 404,
             'msg' => '❌ User tidak ditemukan!',
             'input' => $input
@@ -197,7 +197,7 @@ foreach ($allTracks as $track) {
 // ========== BUILD RESULT ==========
 $result = [
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => $input,
     'result' => [
         'user' => [

@@ -14,7 +14,7 @@ $device = $_GET['device'] ?? 'desktop';
 if (empty($targetUrl)) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => 'Parameter url wajib diisi'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
@@ -25,7 +25,7 @@ $allowedDevices = ['desktop', 'tablet', 'mobile'];
 if (!in_array($device, $allowedDevices)) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => 'Device tidak valid. Pilih: ' . implode(', ', $allowedDevices)
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
@@ -68,7 +68,7 @@ curl_close($ch);
 if ($error) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => $error
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
@@ -80,7 +80,7 @@ if ($data && ($data['status'] ?? '') === 'success' && isset($data['data']['scree
     $screenshot = $data['data']['screenshot'];
     
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => true,
         'result' => [
             'target_url' => $targetUrl,
@@ -97,7 +97,7 @@ if ($data && ($data['status'] ?? '') === 'success' && isset($data['data']['scree
 } else {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => 'Gagal mengambil screenshot'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 }

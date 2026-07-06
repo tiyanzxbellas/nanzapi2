@@ -14,7 +14,7 @@ header("Access-Control-Allow-Headers: Content-Type");
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 
 // ========== KODE UTAMA ==========
 $ip = isset($_GET['ip']) ? trim($_GET['ip']) : '';
@@ -69,7 +69,7 @@ curl_close($ch);
 if ($curl_error || $response === false) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => "Connection error: " . ($curl_error ? $curl_error : 'Unknown error'),
         'http_code' => $http_code,
         'query_time' => date('Y-m-d\TH:i:s')
@@ -82,7 +82,7 @@ $api_data = json_decode($response, true);
 if (!$api_data || json_last_error() !== JSON_ERROR_NONE) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => 'Error parsing API response',
         'http_code' => $http_code,
         'query_time' => date('Y-m-d\TH:i:s')
@@ -93,7 +93,7 @@ if (!$api_data || json_last_error() !== JSON_ERROR_NONE) {
 if (isset($api_data['status']) && $api_data['status'] === 'fail') {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => $api_data['message'] ?? 'Failed to get IP information',
         'http_code' => $http_code,
         'query_time' => date('Y-m-d\TH:i:s')
@@ -104,7 +104,7 @@ if (isset($api_data['status']) && $api_data['status'] === 'fail') {
 // ========== SUSUN RESPONSE ==========
 $data = [
     'status' => true,
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'input' => ['ip' => !empty($ip) ? $ip : 'auto-detect'],
     'result' => [
         'ip' => $api_data['query'] ?? 'N/A',
@@ -130,7 +130,7 @@ $data = [
 // Cleanup keys
 $keysToRemove = ['creator', 'Creator', 'author', 'Author'];
 $data = removeKeysRecursive($data, $keysToRemove);
-$data['creator'] = 'Nanzz';
+$data['creator'] = 'Tiyanz';
 
 echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 

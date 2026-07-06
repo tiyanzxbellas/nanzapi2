@@ -10,7 +10,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(60);
@@ -111,7 +111,7 @@ function checkRateLimit() {
             
             // Return info rate limit kalo kena
             $data = [
-                'creator' => 'Nanzz',
+                'creator' => 'Tiyanz',
                 'status' => false,
                 'message' => 'Rate limit exceeded',
                 'rate_limit' => [

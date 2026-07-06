@@ -9,7 +9,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(60);
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 
 $code = $_GET['text'] ?? $_GET['code'] ?? '';
 $lang = $_GET['lang'] ?? 'auto';

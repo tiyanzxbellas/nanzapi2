@@ -9,7 +9,7 @@ ini_set('display_errors', '0');
 header('Content-Type: image/png');
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(30);
 
 $text = trim($_GET['text'] ?? 'kenapa nyahh aku salah mulu');
@@ -18,8 +18,8 @@ $text = trim($_GET['text'] ?? 'kenapa nyahh aku salah mulu');
 // BACKGROUND & FONT
 // ===============================
 
-$BACKGROUND_URL = 'https://nanzzcode.my.id/cdn/windows.jpg';
-$FONT_URL = 'https://nanzzcode.my.id/cdn/Arial-bold.ttf';
+$BACKGROUND_URL = 'https://tiyanzcode.my.id/cdn/windows.jpg';
+$FONT_URL = 'https://tiyanzcode.my.id/cdn/Arial-bold.ttf';
 
 // ===============================
 // FRAME: 99,428,486,995
@@ -112,6 +112,6 @@ try {
 
 } catch (Exception $e) {
     header('Content-Type: application/json');
-    echo json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    echo json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 }
 ?>

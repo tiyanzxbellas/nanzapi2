@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - YouTube Video Downloader (Vidssave API Wrapper)
+// Deskripsi: Tiyanz API - YouTube Video Downloader (Vidssave API Wrapper)
 // Contoh: {"url": "https://youtu.be/bgBq9rYDN_8"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param url Text Input - URL YouTube video (youtube.com/watch?v= atau youtu.be/)
@@ -19,7 +19,7 @@ $url = isset($_GET['url']) ? trim($_GET['url']) : '';
 // Validasi input
 if (empty($url)) {
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'URL YouTube diperlukan. Contoh: ?url=https://youtu.be/bgBq9rYDN_8'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -40,7 +40,7 @@ if (preg_match('/youtu\.be\/([A-Za-z0-9_-]+)/', $url, $m)) {
 
 if (empty($video_id)) {
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal mengekstrak Video ID dari URL',
         'input' => ['url' => $url]
@@ -104,7 +104,7 @@ for ($retry = 0; $retry < $max_retries; $retry++) {
 
 if ($response === false || $http_code !== 200) {
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal menghubungi Vidssave API',
         'http_code' => $http_code
@@ -116,7 +116,7 @@ $api_data = json_decode($response, true);
 
 if (!$api_data || json_last_error() !== JSON_ERROR_NONE) {
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal parsing response API'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -125,7 +125,7 @@ if (!$api_data || json_last_error() !== JSON_ERROR_NONE) {
 
 if (!isset($api_data['status']) || $api_data['status'] != 1) {
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal mendapatkan data video'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
@@ -191,7 +191,7 @@ usort($video_formats, function($a, $b) { return $a['quality'] <=> $b['quality'];
 
 // ========== SUSUN RESPONSE ==========
 $data = [
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'status' => true,
     'input' => [
         'url' => $url,
@@ -225,7 +225,7 @@ $data = [
 // Cleanup
 $keysToRemove = ['creator', 'Creator', 'author', 'Author'];
 $data = removeKeysRecursive($data, $keysToRemove);
-$data['creator'] = 'Nanzz';
+$data['creator'] = 'Tiyanz';
 
 echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 

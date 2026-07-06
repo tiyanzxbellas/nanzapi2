@@ -21,7 +21,7 @@ if (!in_array($maxPages, $allowedPages)) {
 if (empty($query)) {
     echo json_encode([
         'status' => false,
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'message' => 'Parameter q wajib diisi'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
@@ -157,7 +157,7 @@ for ($page = 1; $page <= $maxPages; $page++) {
 }
 
 echo json_encode([
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'status' => true,
     'result' => [
         'query' => $query,

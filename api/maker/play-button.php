@@ -2,7 +2,7 @@
 error_reporting(0);
 ini_set('display_errors', '0');
 // Deskripsi: YouTube Play Button Generator
-// Contoh: {"nama":"Nanzz","template":"silver"}
+// Contoh: {"nama":"Tiyanz","template":"silver"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param template (silver|gold) Template
 // @param nama Nama Channel
@@ -10,10 +10,10 @@ ini_set('display_errors', '0');
 header('Content-Type: image/jpeg');
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(30);
 
-$nama = $_GET['nama'] ?? 'Nanzz';
+$nama = $_GET['nama'] ?? 'Tiyanz';
 $template = $_GET['template'] ?? 'silver';
 
 // ==================== SHORTCUT ====================
@@ -34,11 +34,11 @@ $textColorB = 240;
 // ==================================================
 
 if ($template === 'gold') {
-    $bgUrl = 'https://nanzzcode.my.id/play-button/gold.jpg';
+    $bgUrl = 'https://tiyanzcode.my.id/play-button/gold.jpg';
     $frameX1 = 148; $frameY1 = 423; $frameX2 = 365; $frameY2 = 439;
     $fontSize = $goldFontSize; $offsetX = $goldOffsetX; $offsetY = $goldOffsetY;
 } else {
-    $bgUrl = 'https://nanzzcode.my.id/play-button/silver.jpg';
+    $bgUrl = 'https://tiyanzcode.my.id/play-button/silver.jpg';
     $frameX1 = 179; $frameY1 = 360; $frameX2 = 378; $frameY2 = 373;
     $fontSize = $silverFontSize; $offsetX = $silverOffsetX; $offsetY = $silverOffsetY;
 }
@@ -91,6 +91,6 @@ try {
     
 } catch (Exception $e) {
     header('Content-Type: application/json');
-    echo json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
+    echo json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
 }
 ?>

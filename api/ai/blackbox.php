@@ -86,7 +86,7 @@ if ($http_code === 200 && !empty($response)) {
 
 echo json_encode([
     'status'  => ($http_code === 200),
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'result'  => $final_result
 ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 ?>

@@ -10,7 +10,7 @@ header('Content-Type: image/png');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
@@ -20,7 +20,7 @@ $imageUrl = $_GET['url'] ?? '';
 if (!$imageUrl) {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Parameter url diperlukan'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
@@ -92,7 +92,7 @@ try {
 } catch (Exception $e) {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => $e->getMessage()
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

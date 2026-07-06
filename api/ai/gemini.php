@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 
 header('Content-Type: application/json; charset=utf-8');
 
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(120);
 
 $text = $_GET['text'] ?? 'Hello';

@@ -12,12 +12,12 @@ $query = $_GET['q'] ?? '';
 
 if (empty($query)) {
     header('Content-Type: application/json');
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'message' => 'Parameter q wajib diisi']);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'message' => 'Parameter q wajib diisi']);
     exit;
 }
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 
 // ========== SEARCH (100% SAMA) ==========
 define('SECRET', '376136387538459893883312310911992847112448894410210511297108');
@@ -104,7 +104,7 @@ if (preg_match('/spotify\.com\/track\/([a-zA-Z0-9]+)/', $query, $m)) {
     $token = getToken();
     if (!$token) {
         header('Content-Type: application/json');
-        echo json_encode(['status' => false, 'creator' => 'Nanzz', 'message' => 'Gagal mendapatkan token']);
+        echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'message' => 'Gagal mendapatkan token']);
         exit;
     }
     
@@ -136,7 +136,7 @@ if (preg_match('/spotify\.com\/track\/([a-zA-Z0-9]+)/', $query, $m)) {
     
     if (empty($trackItems)) {
         header('Content-Type: application/json');
-        echo json_encode(['status' => false, 'creator' => 'Nanzz', 'message' => 'Lagu tidak ditemukan']);
+        echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'message' => 'Lagu tidak ditemukan']);
         exit;
     }
     
@@ -163,7 +163,7 @@ $downloadUrl = $result['data']['metadata']['download'] ?? '';
 
 if (!$downloadUrl) {
     header('Content-Type: application/json');
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'message' => 'Gagal download']);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'message' => 'Gagal download']);
     exit;
 }
 

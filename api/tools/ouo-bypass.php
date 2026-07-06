@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - Ouo.io Link Bypasser
+// Deskripsi: Tiyanz API - Ouo.io Link Bypasser
 // Contoh: {"url": "https://ouo.io/HxFVfD"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param url Text Input - URL Ouo.io/Ouo.press yang mau di-bypass
@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 $url = $_GET['url'] ?? '';
 if (empty($url)) {
-    die(json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => 'Gunakan ?url=https://ouo.io/xxx']));
+    die(json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => 'Gunakan ?url=https://ouo.io/xxx']));
 }
 
 // ========== RECAPTCHA V3 SOLVER ==========
@@ -165,7 +165,7 @@ $result = ouo_bypass($url);
 
 if ($result) {
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => true,
         'input' => ['url' => $url],
         'result' => [
@@ -175,7 +175,7 @@ if ($result) {
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 } else {
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Gagal bypass Ouo.io'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);

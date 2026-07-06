@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - YouTube Search (Working 100%)
+// Deskripsi: Tiyanz API - YouTube Search (Working 100%)
 // Contoh: {"q": "multo"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param q Text Input - Kata kunci pencarian YouTube
@@ -15,7 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 
 $q = $_GET['q'] ?? '';
 if (empty($q)) {
-    die(json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => 'Gunakan ?q= untuk kata kunci']));
+    die(json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => 'Gunakan ?q= untuk kata kunci']));
 }
 
 $ua = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/125.0.0.0 Mobile Safari/537.36';
@@ -99,11 +99,11 @@ if (empty($results)) {
 }
 
 if (empty($results)) {
-    die(json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => 'Tidak ditemukan hasil']));
+    die(json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => 'Tidak ditemukan hasil']));
 }
 
 echo json_encode([
-    'creator' => 'Nanzz',
+    'creator' => 'Tiyanz',
     'status' => true,
     'input' => ['q' => $q],
     'result' => [

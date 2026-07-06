@@ -2,7 +2,7 @@
 error_reporting(0);
 ini_set('display_errors', '0');
 // Deskripsi: Website Screenshot (BentoScreen)
-// Contoh: {"url":"https://api-nanzz.my.id/docs"}
+// Contoh: {"url":"https://api-tiyanz.my.id/docs"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param url URL website
 // @param device (desktop_hd|desktop_fhd|desktop_4k|desktop_wide|laptop_13|laptop_15|macbook_air|macbook_pro|ipad|ipad_pro|ipad_mini|samsung_tab|iphone_se|iphone_14|iphone_14_pro|iphone_15_pro|samsung_s24|pixel_8|xiaomi_14) Device
@@ -13,7 +13,7 @@ header('Content-Type: application/json; charset=utf-8');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 $url = $_GET['url'] ?? '';

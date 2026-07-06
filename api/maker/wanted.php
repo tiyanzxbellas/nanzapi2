@@ -1,7 +1,7 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Nanzz API - Fake Wanted Poster Generator
+// Deskripsi: Tiyanz API - Fake Wanted Poster Generator
 // Contoh: {"nama":"Jokowi Dodo","harga":"150.000.000","url":"https://www.upload.ee/image/19400325/images.webp"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param nama Nama Buronan
@@ -11,7 +11,7 @@ ini_set('display_errors', '0');
 header('Content-Type: image/png');
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'Tiyanz'];
 set_time_limit(30);
 
 $nama = strtoupper(trim($_GET['nama'] ?? 'Jokowi Dodo'));
@@ -43,9 +43,9 @@ $centerOffsetX = -30; // minus = geser kiri, plus = geser kanan
 // =============================================================
 
 // ==================== URL ASSETS ====================
-$bgUrl = 'https://nanzzcode.my.id/cdn/wanted1.png';
-$dollarUrl = 'https://nanzzcode.my.id/cdn/Dollar.png';
-$fontNamaUrl = 'https://nanzzcode.my.id/cdn/PlayfairDisplay-Bold.ttf';
+$bgUrl = 'https://tiyanzcode.my.id/cdn/wanted1.png';
+$dollarUrl = 'https://tiyanzcode.my.id/cdn/Dollar.png';
+$fontNamaUrl = 'https://tiyanzcode.my.id/cdn/PlayfairDisplay-Bold.ttf';
 $fontHargaUrl = 'https://api-nanas.my.id/Ryu-Japanese.ttf';
 // ===================================================
 
@@ -144,6 +144,6 @@ try {
     
 } catch (Exception $e) {
     header('Content-Type: application/json');
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'message' => $e->getMessage()], JSON_PRETTY_PRINT);
 }
 ?>

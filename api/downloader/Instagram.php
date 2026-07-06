@@ -7,7 +7,7 @@ ini_set('display_errors', '0');
 
 header('Content-Type: application/json');
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 $url = $_GET['url'] ?? '';
 
 if (empty($url)) {

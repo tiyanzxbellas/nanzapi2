@@ -8,7 +8,7 @@ ini_set('display_errors', '0');
 
 set_time_limit(180);
 
-$credit = 'Nanzz';
+$credit = 'Tiyanz';
 $imageUrl = $_GET['url'] ?? '';
 $hasFile = isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK;
 $prompt = 'Keep the persons face EXACTLY the same, do not modify facial features at all. Only change: dress them in a beautiful Japanese kimono with obi belt, place them in a Japanese garden under blooming sakura trees with pink petals, add traditional Japanese temple in background. Keep the original face, skin tone, and body completely unchanged. Only change the clothes and background.';

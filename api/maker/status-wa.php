@@ -2,7 +2,7 @@
 error_reporting(0);
 ini_set('display_errors', '0');
 // Deskripsi: Fake WhatsApp Story Generator
-// Contoh: {"nama":"Nanzz","pesan":"Halo semua!","profile":"https://example.com/foto.jpg"}
+// Contoh: {"nama":"Tiyanz","pesan":"Halo semua!","profile":"https://example.com/foto.jpg"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
 // @param nama Nama di Story
 // @param pesan Pesan Story
@@ -12,12 +12,12 @@ header('Content-Type: image/jpeg');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
 
-$nama = $_GET['nama'] ?? 'Nanzz';
+$nama = $_GET['nama'] ?? 'Tiyanz';
 $pesan = $_GET['pesan'] ?? 'Halo semua!';
 $profileUrl = $_GET['profile'] ?? 'https://i.pinimg.com/originals/6a/74/83/6a74838448f8b1238c69c8e3787f4e1b.jpg';
 
@@ -40,8 +40,8 @@ $namaFrameX1 = 209; $namaFrameY1 = 1115; $namaFrameX2 = 840; $namaFrameY2 = 1268
 $pesanFrameX1 = 185; $pesanFrameY1 = 687; $pesanFrameX2 = 881; $pesanFrameY2 = 1173;
 // =============================================================
 
-$bgUrl = 'https://nanzzcode.my.id/Status_wa.jpg';
-$fontUrl = 'https://nanzzcode.my.id/Roboto.ttf';
+$bgUrl = 'https://tiyanzcode.my.id/Status_wa.jpg';
+$fontUrl = 'https://tiyanzcode.my.id/Roboto.ttf';
 
 function downloadBuffer($url) {
     $ch = curl_init();
@@ -207,6 +207,6 @@ try {
     
 } catch (Exception $e) {
     header('Content-Type: application/json');
-    echo json_encode(['creator' => 'Nanzz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    echo json_encode(['creator' => 'Tiyanz', 'status' => false, 'message' => $e->getMessage()], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
 }
 ?>

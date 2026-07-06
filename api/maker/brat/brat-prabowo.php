@@ -10,7 +10,7 @@ header('Content-Type: image/jpeg');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
@@ -29,7 +29,7 @@ $fontMinSize = 16;
 $fontPadding = 20;
 $offsetY = 120; // ← ATUR TURUN/NAIK TEKS (makin besar makin turun)
 
-$bgUrl = 'https://nanzzcode.my.id/Prabowo.png';
+$bgUrl = 'https://tiyanzcode.my.id/Prabowo.png';
 $fontUrl = 'https://raw.githubusercontent.com/SaurusAraAra/mentahan/main/font/Poppins.ttf';
 
 function downloadBuffer($url) {
@@ -159,7 +159,7 @@ try {
 } catch (Exception $e) {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => $e->getMessage()
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);

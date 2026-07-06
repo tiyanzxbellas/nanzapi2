@@ -10,7 +10,7 @@ header('Content-Type: image/png');
 
 // ========== CREDIT ==========
 $credit = [
-    'creator' => 'Nanzz'
+    'creator' => 'Tiyanz'
 ];
 
 set_time_limit(30);
@@ -20,15 +20,15 @@ $nama = trim($_GET['nama'] ?? '');
 if (!$nama) {
     header('Content-Type: application/json');
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => 'Parameter nama diperlukan'
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
     exit;
 }
 
-$backgroundUrl = 'https://nanzzcode.my.id/nasa.png';
-$fontUrl       = 'https://nanzzcode.my.id/CormorantGaramond-SemiBold.ttf';
+$backgroundUrl = 'https://tiyanzcode.my.id/nasa.png';
+$fontUrl       = 'https://tiyanzcode.my.id/CormorantGaramond-SemiBold.ttf';
 
 function downloadBuffer($url)
 {
@@ -242,7 +242,7 @@ try {
     header('Content-Type: application/json');
 
     echo json_encode([
-        'creator' => 'Nanzz',
+        'creator' => 'Tiyanz',
         'status' => false,
         'message' => $e->getMessage()
     ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
