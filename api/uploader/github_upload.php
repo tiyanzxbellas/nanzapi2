@@ -6,10 +6,15 @@
  * 
  * Fitur: Upload file ZIP & ekstrak langsung ke GitHub via Token
  * Support: JSON API + multipart/form-data
+ * Fix: 413 Request Entity Too Large - Increased limits
  */
 
 error_reporting(0);
 ini_set('display_errors', '0');
+ini_set('memory_limit', '512M');
+ini_set('max_execution_time', 300);
+ini_set('post_max_size', '100M');
+ini_set('upload_max_filesize', '100M');
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
@@ -25,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 $credit = [
     'creator' => 'Tiyanz',
     'source' => 'https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33',
-    'version' => '6.1-rest-api'
+    'version' => '6.2-rest-api'
 ];
 
 // ========== FUNGSI HELPER ==========
@@ -294,6 +299,16 @@ function processZipFile($zipBuffer, $token, $owner, $repo) {
 // ========== HANDLE REQUEST ==========
 
 try {
+    // Cek error upload
+    if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['file'])) {
+        if ($_FILES['file']['error'] === UPLOAD_ERR_INI_SIZE) {
+            throw new Exception('File terlalu besar. Maksimal 100MB.');
+        }
+        if ($_FILES['file']['error'] === UPLOAD_ERR_FORM_SIZE) {
+            throw new Exception('File terlalu besar. Maksimal 100MB.');
+        }
+    }
+    
     $token = null;
     $owner = null;
     $repoName = null;
@@ -329,6 +344,7 @@ try {
                 .badge-success { background: #238636; color: white; }
                 .badge-danger { background: #da3633; color: white; }
                 .badge-warning { background: #d29922; color: white; }
+                .limit-info { background: #1f2937; padding: 10px; border-radius: 5px; margin-top: 10px; font-size: 12px; color: #8b949e; }
             </style>
         </head>
         <body>
@@ -336,6 +352,10 @@ try {
                 <h1>📤 GitHub Upload & Extractor</h1>
                 <p style="color: #8b949e;">Upload file ZIP & ekstrak langsung ke GitHub</p>
                 <hr style="border-color: #30363d;">
+                
+                <div class="limit-info">
+                    ⚡ Max file size: <strong>100MB</strong> | Timeout: <strong>300s</strong>
+                </div>
                 
                 <form id="uploadForm" enctype="multipart/form-data">
                     <div class="form-group">
@@ -365,7 +385,7 @@ try {
                     <div class="form-group">
                         <label>📦 File ZIP</label>
                         <input type="file" name="file" accept=".zip" required>
-                        <small style="color: #8b949e;">Max 20MB</small>
+                        <small style="color: #8b949e;">Max 100MB</small>
                     </div>
                     
                     <button type="submit">🚀 Upload ke GitHub</button>
@@ -437,7 +457,22 @@ try {
         $repoType = trim($_POST['mode']);
         
         if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-            throw new Exception('File ZIP wajib diupload');
+            $errorMsg = 'File ZIP wajib diupload';
+            if (isset($_FILES['file']['error'])) {
+                $uploadErrors = [
+                    UPLOAD_ERR_INI_SIZE => 'File melebihi upload_max_filesize (100MB)',
+                    UPLOAD_ERR_FORM_SIZE => 'File melebihi MAX_FILE_SIZE yang ditentukan',
+                    UPLOAD_ERR_PARTIAL => 'File hanya terupload sebagian',
+                    UPLOAD_ERR_NO_FILE => 'Tidak ada file yang diupload',
+                    UPLOAD_ERR_NO_TMP_DIR => 'Missing temporary folder',
+                    UPLOAD_ERR_CANT_WRITE => 'Failed to write file to disk',
+                    UPLOAD_ERR_EXTENSION => 'File upload stopped by extension'
+                ];
+                if (isset($uploadErrors[$_FILES['file']['error']])) {
+                    $errorMsg .= ': ' . $uploadErrors[$_FILES['file']['error']];
+                }
+            }
+            throw new Exception($errorMsg);
         }
         
         $fileTmp = $_FILES['file']['tmp_name'];
@@ -446,13 +481,14 @@ try {
         
         // Validasi file
         $fileMime = mime_content_type($fileTmp);
-        if (!strpos($fileMime, 'zip') && !strpos($fileName, '.zip')) {
+        $ext = pathinfo($fileName, PATHINFO_EXTENSION);
+        if (!strpos($fileMime, 'zip') && strtolower($ext) !== 'zip') {
             throw new Exception('File harus berformat ZIP');
         }
         
-        $maxSize = 20 * 1024 * 1024;
+        $maxSize = 100 * 1024 * 1024; // 100MB
         if ($fileSize > $maxSize) {
-            throw new Exception('File ZIP terlalu besar (max 20MB)');
+            throw new Exception('File ZIP terlalu besar (max 100MB)');
         }
         
         $zipBuffer = file_get_contents($fileTmp);
@@ -505,9 +541,9 @@ try {
     }
     
     $fileSize = strlen($zipBuffer);
-    $maxSize = 20 * 1024 * 1024;
+    $maxSize = 100 * 1024 * 1024; // 100MB
     if ($fileSize > $maxSize) {
-        throw new Exception('File ZIP terlalu besar (max 20MB)');
+        throw new Exception('File ZIP terlalu besar (max 100MB)');
     }
     
     $zipSizeMB = number_format($fileSize / 1024 / 1024, 2);
