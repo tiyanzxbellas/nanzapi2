@@ -1,151 +1,49 @@
 <?php
-// ============================================================
-// Deskripsi: GitHub Upload & Extract - Upload ZIP ke GitHub
-// Contoh: github_upload.php?args=ghp_xxxxx|jerexd|my-repo|new&file=/path/to/file.zip
-// @param args Format: token|owner|repo|mode
-// @param file Path file ZIP yang akan diupload (opsional, bisa via POST)
-// ============================================================
+/*
+ * [ GITHUB UPLOAD & EXTRACTOR - REST API ]
+ * creator : Tiyanz
+ * source  : https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33
+ * 
+ * Fitur: Upload file ZIP & ekstrak langsung ke GitHub via Token
+ * 1 ZIP = SEMUA FILE LANGSUNG DIUPLOAD!
+ * 
+ * Format: JSON API
+ * Method: POST
+ * Body: { "token": "...", "owner": "...", "repo": "...", "mode": "new|existing", "file": "base64..." }
+ */
+
+error_reporting(0);
+ini_set('display_errors', '0');
 
 header('Content-Type: application/json; charset=utf-8');
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
+header('Access-Control-Allow-Origin: *');
+header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
-
-// ============================================================
-// AMBIL PARAMETER
-// ============================================================
-$args = isset($_REQUEST['args']) ? trim($_REQUEST['args']) : '';
-$filePath = isset($_REQUEST['file']) ? trim($_REQUEST['file']) : '';
-
-// Kalau ada file upload via POST
-if (isset($_FILES['file']) && $_FILES['file']['error'] === UPLOAD_ERR_OK) {
-    $filePath = $_FILES['file']['tmp_name'];
-} elseif (isset($_REQUEST['file']) && file_exists($_REQUEST['file'])) {
-    $filePath = $_REQUEST['file'];
-}
-
-// ============================================================
-// VALIDASI PARAMETER
-// ============================================================
-if (empty($args)) {
-    echo json_encode([
-        'status' => false,
-        'creator' => 'GitHub Uploader',
-        'error' => 'Parameter "args" wajib diisi',
-        'format' => 'github_upload.php?args=token|owner|repo|mode',
-        'example' => 'github_upload.php?args=ghp_xxxxx|jerexd|my-repo|new',
-        'note' => 'Reply file ZIP atau kirim via POST dengan field "file"'
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+// Handle preflight
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
+    http_response_code(200);
     exit;
 }
 
-$parts = explode('|', $args);
-if (count($parts) !== 4) {
+// Hanya POST
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
     echo json_encode([
         'status' => false,
-        'creator' => 'GitHub Uploader',
-        'error' => 'Format args salah',
-        'format' => 'token|owner|repo|mode',
-        'example' => 'ghp_xxxxx|jerexd|my-repo|new'
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        'message' => 'Method not allowed. Use POST.'
+    ]);
     exit;
 }
 
-list($token, $owner, $repoName, $repoType) = array_map('trim', $parts);
-
-if (!in_array($repoType, ['new', 'existing'])) {
-    echo json_encode([
-        'status' => false,
-        'creator' => 'GitHub Uploader',
-        'error' => 'Mode harus "new" atau "existing"'
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
-// ============================================================
-// CEK FILE
-// ============================================================
-if (empty($filePath) || !file_exists($filePath)) {
-    echo json_encode([
-        'status' => false,
-        'creator' => 'GitHub Uploader',
-        'error' => 'File ZIP tidak ditemukan',
-        'note' => 'Kirim file ZIP via POST dengan field "file" atau parameter "file=/path/to/file.zip"',
-        'file_received' => $filePath
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
-// Cek mime type
-$finfo = finfo_open(FILEINFO_MIME_TYPE);
-$mime = finfo_file($finfo, $filePath);
-finfo_close($finfo);
-
-if ($mime !== 'application/zip' && !str_ends_with($filePath, '.zip')) {
-    echo json_encode([
-        'status' => false,
-        'creator' => 'GitHub Uploader',
-        'error' => 'File harus berupa ZIP',
-        'mime_detected' => $mime
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
-    exit;
-}
-
-// ============================================================
-// USER AGENT & IP RANDOM
-// ============================================================
-$uas = [
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
+$credit = [
+    'creator' => 'Tiyanz',
+    'source' => 'https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33',
+    'version' => '6.0-rest-api'
 ];
 
-function rUA() { global $uas; return $uas[array_rand($uas)]; }
-function rIP() { return rand(1,255).'.'.rand(1,255).'.'.rand(1,255).'.'.rand(1,255); }
+// ========== FUNGSI HELPER ==========
 
-// ============================================================
-// FUNGSI CURL REQUEST
-// ============================================================
-function ghRequest($url, $token = null, $method = 'GET', $data = null, $customHeaders = []) {
-    $ch = curl_init();
-    
-    $headers = ['User-Agent: ' . rUA(), 'X-Forwarded-For: ' . rIP()];
-    if ($token) $headers[] = "Authorization: token {$token}";
-    if ($data) $headers[] = 'Content-Type: application/json';
-    if (!empty($customHeaders)) $headers = array_merge($headers, $customHeaders);
-    
-    $opts = [
-        CURLOPT_URL => $url,
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_TIMEOUT => 30,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_HTTPHEADER => $headers
-    ];
-    
-    if ($method === 'POST') {
-        $opts[CURLOPT_POST] = true;
-        if ($data) $opts[CURLOPT_POSTFIELDS] = json_encode($data);
-    } elseif ($method === 'PUT') {
-        $opts[CURLOPT_CUSTOMREQUEST] = 'PUT';
-        if ($data) $opts[CURLOPT_POSTFIELDS] = json_encode($data);
-    }
-    
-    curl_setopt_array($ch, $opts);
-    $response = curl_exec($ch);
-    $code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-    
-    return ['code' => $code, 'response' => $response, 'error' => $error];
-}
-
-// ============================================================
-// FUNGSI UTAMA
-// ============================================================
-
-// 1. Cek file binary
 function isBinaryFile($filename) {
     $binaryExtensions = [
         '.png', '.jpg', '.jpeg', '.gif', '.bmp', '.ico', '.webp',
@@ -153,194 +51,375 @@ function isBinaryFile($filename) {
         '.exe', '.dll', '.so', '.dylib', '.bin', '.dat',
         '.mp3', '.mp4', '.avi', '.mov', '.mkv', '.flv',
         '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-        '.woff', '.woff2', '.ttf', '.eot', '.otf'
+        '.woff', '.woff2', '.ttf', '.eot', '.otf',
+        '.jar', '.war', '.ear', '.apk', '.ipa',
+        '.iso', '.img', '.dmg'
     ];
     $lowerName = strtolower($filename);
     foreach ($binaryExtensions as $ext) {
-        if (str_ends_with($lowerName, $ext)) return true;
+        if (substr($lowerName, -strlen($ext)) === $ext) {
+            return true;
+        }
     }
     return false;
 }
 
-// 2. Upload ke GitHub
-function uploadToGitHub($token, $owner, $repo, $filePath, $content) {
-    $encodedPath = implode('/', array_map('urlencode', explode('/', $filePath)));
+function bufferToBase64($buffer) {
+    return base64_encode($buffer);
+}
+
+// ========== GET DEFAULT BRANCH ==========
+
+function getDefaultBranch($token, $owner, $repo) {
+    $url = "https://api.github.com/repos/{$owner}/{$repo}";
+    
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: token ' . $token,
+        'User-Agent: PHP-GitHub-Uploader'
+    ]);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $data = json_decode($response, true);
+        return $data['default_branch'] ?? 'main';
+    }
+    
+    return 'main';
+}
+
+// ========== FUNGSI GITHUB API ==========
+
+function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries = 3) {
+    $encodedPath = implode('/', array_map('rawurlencode', explode('/', $filePath)));
     $url = "https://api.github.com/repos/{$owner}/{$repo}/contents/{$encodedPath}";
     
-    // Cek SHA
-    $sha = null;
-    $result = ghRequest($url, $token, 'GET');
-    if ($result['code'] == 200) {
-        $data = json_decode($result['response'], true);
-        if (isset($data['sha'])) $sha = $data['sha'];
+    $attempt = 0;
+    while ($attempt < $maxRetries) {
+        try {
+            // Cek SHA
+            $sha = null;
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: token ' . $token,
+                'User-Agent: PHP-GitHub-Uploader'
+            ]);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            if ($httpCode === 200) {
+                $data = json_decode($response, true);
+                if ($data && isset($data['sha'])) {
+                    $sha = $data['sha'];
+                }
+            }
+            
+            // Upload/Update
+            $data = [
+                'message' => $sha ? "Update {$filePath}" : "Add {$filePath}",
+                'content' => $content
+            ];
+            if ($sha) {
+                $data['sha'] = $sha;
+            }
+            
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'PUT');
+            curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+            curl_setopt($ch, CURLOPT_HTTPHEADER, [
+                'Authorization: token ' . $token,
+                'Content-Type: application/json',
+                'User-Agent: PHP-GitHub-Uploader'
+            ]);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
+            $response = curl_exec($ch);
+            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $error = curl_error($ch);
+            curl_close($ch);
+            
+            if ($error) {
+                throw new Exception("CURL Error: {$error}");
+            }
+            
+            if ($httpCode === 200 || $httpCode === 201) {
+                return json_decode($response, true);
+            }
+            
+            // Rate limit
+            if ($httpCode === 403 || $httpCode === 429) {
+                $attempt++;
+                sleep(2 * $attempt);
+                continue;
+            }
+            
+            throw new Exception("HTTP {$httpCode}");
+            
+        } catch (Exception $e) {
+            $attempt++;
+            if ($attempt >= $maxRetries) {
+                throw new Exception("Gagal upload {$filePath}: " . $e->getMessage());
+            }
+            sleep(1);
+        }
     }
-    
-    // Upload
-    $payload = [
-        'message' => $sha ? "Update {$filePath}" : "Add {$filePath}",
-        'content' => $content
+}
+
+function createRepository($token, $owner, $repoName, $isPrivate = false) {
+    $url = 'https://api.github.com/user/repos';
+    $data = [
+        'name' => $repoName,
+        'private' => $isPrivate,
+        'auto_init' => false
     ];
-    if ($sha) $payload['sha'] = $sha;
     
-    $result = ghRequest($url, $token, 'PUT', $payload);
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: token ' . $token,
+        'Content-Type: application/json',
+        'User-Agent: PHP-GitHub-Uploader'
+    ]);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $error = curl_error($ch);
+    curl_close($ch);
     
-    if ($result['code'] < 200 || $result['code'] >= 300) {
-        throw new Exception("Upload failed: HTTP {$result['code']} - {$result['response']}");
+    if ($error) {
+        throw new Exception("CURL Error: {$error}");
     }
     
-    return json_decode($result['response'], true);
-}
-
-// 3. Buat repository
-function createRepository($token, $owner, $repoName) {
-    $url = "https://api.github.com/user/repos";
-    $payload = ['name' => $repoName, 'private' => false, 'auto_init' => false];
-    
-    $result = ghRequest($url, $token, 'POST', $payload);
-    
-    if ($result['code'] < 200 || $result['code'] >= 300) {
-        throw new Exception("Create repo failed: HTTP {$result['code']} - {$result['response']}");
+    if ($httpCode !== 200 && $httpCode !== 201) {
+        $errorMsg = "Gagal membuat repository: {$repoName} (HTTP {$httpCode})";
+        if ($response) {
+            $respData = json_decode($response, true);
+            if (isset($respData['message'])) {
+                $errorMsg .= " - " . $respData['message'];
+            }
+        }
+        throw new Exception($errorMsg);
     }
     
-    return json_decode($result['response'], true);
+    return json_decode($response, true);
 }
 
-// 4. Cek repository
 function checkRepository($token, $owner, $repoName) {
     $url = "https://api.github.com/repos/{$owner}/{$repoName}";
-    $result = ghRequest($url, $token, 'GET');
-    return $result['code'] == 200;
+    
+    $ch = curl_init($url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_HTTPHEADER, [
+        'Authorization: token ' . $token,
+        'User-Agent: PHP-GitHub-Uploader'
+    ]);
+    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    return $httpCode === 200;
 }
 
-// 5. Proses ZIP
-function processZipFile($zipPath, $token, $owner, $repo, &$progress = []) {
+// ========== PROSES ZIP ==========
+
+function processZipFile($zipBuffer, $token, $owner, $repo) {
     $zip = new ZipArchive();
-    if ($zip->open($zipPath) !== true) {
-        throw new Exception("Cannot open ZIP file");
+    $tempZip = tempnam(sys_get_temp_dir(), 'zip_');
+    file_put_contents($tempZip, $zipBuffer);
+    
+    if ($zip->open($tempZip) !== true) {
+        unlink($tempZip);
+        throw new Exception('Gagal membuka file ZIP');
     }
     
+    // Kumpulkan SEMUA file
     $fileList = [];
     for ($i = 0; $i < $zip->numFiles; $i++) {
         $stat = $zip->statIndex($i);
-        if (!$stat['is_dir']) {
-            $fileList[] = ['path' => $stat['name'], 'index' => $i];
+        $name = $stat['name'];
+        // Skip direktori
+        if (!$name || substr($name, -1) === '/') {
+            continue;
         }
+        $fileList[] = [
+            'name' => $name,
+            'index' => $i,
+            'size' => $stat['size']
+        ];
     }
     
     if (empty($fileList)) {
         $zip->close();
-        throw new Exception("Tidak ada file dalam ZIP");
+        unlink($tempZip);
+        throw new Exception('Tidak ada file yang ditemukan dalam ZIP');
     }
     
+    $total = count($fileList);
     $uploaded = 0;
     $failed = 0;
     $results = [];
-    $total = count($fileList);
-    $progress = ['total' => $total, 'uploaded' => 0];
+    $failedFiles = [];
     
-    foreach ($fileList as $idx => $file) {
-        $filePath = $file['path'];
+    // Proses SEMUA file
+    foreach ($fileList as $file) {
         try {
+            $filePath = $file['name'];
             $content = $zip->getFromIndex($file['index']);
-            if ($content === false) throw new Exception("Cannot read file");
+            if ($content === false) {
+                throw new Exception('Gagal membaca file');
+            }
             
-            $base64Content = base64_encode($content);
+            $base64Content = bufferToBase64($content);
             uploadToGitHub($token, $owner, $repo, $filePath, $base64Content);
+            
             $uploaded++;
             $results[] = ['path' => $filePath, 'status' => 'success'];
-            $progress['uploaded'] = $uploaded;
             
-            usleep(200000); // 200ms delay
-            
-        } catch (Exception $err) {
+        } catch (Exception $e) {
             $failed++;
-            $results[] = [
-                'path' => $filePath,
-                'status' => 'failed',
-                'error' => $err->getMessage()
-            ];
+            $failedFiles[] = ['path' => $file['name'], 'error' => $e->getMessage()];
+            $results[] = ['path' => $file['name'], 'status' => 'failed', 'error' => $e->getMessage()];
         }
     }
     
     $zip->close();
+    unlink($tempZip);
     
     return [
         'uploaded' => $uploaded,
         'failed' => $failed,
         'total' => $total,
-        'results' => $results
+        'results' => $results,
+        'failed_files' => $failedFiles
     ];
 }
 
-// ============================================================
-// EKSEKUSI UTAMA
-// ============================================================
+// ========== HANDLE REQUEST ==========
+
 try {
-    $zipSize = number_format(filesize($filePath) / 1024 / 1024, 2);
-    $logs = [];
-    $logs[] = "📥 File ZIP diterima: " . basename($filePath) . " ({$zipSize} MB)";
+    // Baca input JSON
+    $input = json_decode(file_get_contents('php://input'), true);
     
-    // Cek/Create repository
+    if (!$input) {
+        throw new Exception('Invalid JSON input. Please send valid JSON.');
+    }
+    
+    // Validasi parameter
+    $required = ['token', 'owner', 'repo', 'mode'];
+    foreach ($required as $field) {
+        if (empty($input[$field])) {
+            throw new Exception("Parameter '{$field}' wajib diisi");
+        }
+    }
+    
+    $token = trim($input['token']);
+    $owner = trim($input['owner']);
+    $repoName = trim($input['repo']);
+    $repoType = trim($input['mode']);
+    
+    // Validasi format token
+    if (!preg_match('/^ghp_[a-zA-Z0-9]{36}$/', $token) && !preg_match('/^github_pat_[a-zA-Z0-9_]+$/', $token)) {
+        throw new Exception('Format token GitHub tidak valid. Harus dimulai dengan ghp_ atau github_pat_');
+    }
+    
+    if ($repoType !== 'new' && $repoType !== 'existing') {
+        throw new Exception("Mode harus 'new' atau 'existing'!");
+    }
+    
+    // Cek file ZIP (dari base64)
+    if (empty($input['file'])) {
+        throw new Exception('File ZIP (base64) wajib diisi');
+    }
+    
+    $zipBuffer = base64_decode($input['file']);
+    if ($zipBuffer === false || empty($zipBuffer)) {
+        throw new Exception('File ZIP base64 tidak valid atau kosong');
+    }
+    
+    // Validasi ZIP (cek header magic number)
+    $zipHeader = substr($zipBuffer, 0, 4);
+    if ($zipHeader !== "PK\x03\x04" && $zipHeader !== "PK\x05\x06" && $zipHeader !== "PK\x07\x08") {
+        throw new Exception('File bukan ZIP yang valid (signature tidak cocok)');
+    }
+    
+    $fileSize = strlen($zipBuffer);
+    $maxSize = 20 * 1024 * 1024; // 20MB
+    if ($fileSize > $maxSize) {
+        throw new Exception('File ZIP terlalu besar (max 20MB)');
+    }
+    
+    $zipSizeMB = number_format($fileSize / 1024 / 1024, 2);
+    
+    // ========== PROSES UPLOAD ==========
+    
+    $repo = $repoName;
+    
+    // Create atau cek repository
     if ($repoType === 'new') {
-        $logs[] = "📁 Membuat repository baru: {$repoName}...";
-        createRepository($token, $owner, $repoName);
-        $logs[] = "✅ Repository {$repoName} berhasil dibuat";
-        usleep(2000000);
+        try {
+            createRepository($token, $owner, $repoName, false);
+        } catch (Exception $e) {
+            if (strpos($e->getMessage(), 'already exists') !== false) {
+                throw new Exception("Repository {$repoName} sudah ada, gunakan mode 'existing'");
+            }
+            throw $e;
+        }
     } else {
-        $logs[] = "🔍 Mengecek repository {$repoName}...";
         if (!checkRepository($token, $owner, $repoName)) {
             throw new Exception("Repository {$repoName} tidak ditemukan atau token tidak memiliki akses");
         }
-        $logs[] = "✅ Repository ditemukan";
     }
+    
+    // Dapatkan default branch
+    $defaultBranch = getDefaultBranch($token, $owner, $repo);
     
     // Proses ZIP
-    $logs[] = "📂 Mengekstrak file ZIP...";
-    $progress = [];
-    $result = processZipFile($filePath, $token, $owner, $repoName, $progress);
+    $result = processZipFile($zipBuffer, $token, $owner, $repo);
     
-    // Hapus temp file
-    @unlink($filePath);
+    // ========== RESPONSE ==========
     
-    // Laporan
-    $summary = [];
-    $summary['total'] = $result['total'];
-    $summary['success'] = $result['uploaded'];
-    $summary['failed'] = $result['failed'];
-    $summary['repository'] = "https://github.com/{$owner}/{$repoName}";
-    $summary['progress'] = $progress;
+    $response = array_merge($credit, [
+        'status' => true,
+        'message' => $result['failed'] === 0 ? '✅ Semua file berhasil diupload!' : $result['failed'] . ' file gagal diupload',
+        'data' => [
+            'repository' => "https://github.com/{$owner}/{$repo}",
+            'default_branch' => $defaultBranch,
+            'mode' => $repoType,
+            'zip_size_mb' => $zipSizeMB,
+            'total_files' => $result['total'],
+            'uploaded' => $result['uploaded'],
+            'failed' => $result['failed'],
+            'success_rate' => $result['total'] > 0 ? round(($result['uploaded'] / $result['total']) * 100, 2) . '%' : '0%'
+        ]
+    ]);
     
-    // Ambil failed files
-    $failedFiles = array_filter($result['results'], function($r) {
-        return $r['status'] === 'failed';
-    });
-    if (!empty($failedFiles)) {
-        $summary['failed_details'] = array_slice(array_values($failedFiles), 0, 10);
+    // Tambahkan detail jika ada error
+    if ($result['failed'] > 0) {
+        $response['data']['failed_files'] = $result['failed_files'];
     }
     
-    // Response
-    echo json_encode([
-        'status' => true,
-        'creator' => 'GitHub Uploader',
-        'mode' => $repoType,
-        'input' => [
-            'token' => substr($token, 0, 10) . '...',
-            'owner' => $owner,
-            'repo' => $repoName,
-            'file' => basename($filePath),
-            'size' => $zipSize . ' MB'
-        ],
-        'result' => $summary,
-        'logs' => $logs,
-        'timestamp' => date('Y-m-d H:i:s')
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+    echo json_encode($response, JSON_PRETTY_PRINT);
     
 } catch (Exception $e) {
-    echo json_encode([
+    http_response_code(400);
+    echo json_encode(array_merge($credit, [
         'status' => false,
-        'creator' => 'GitHub Uploader',
-        'error' => $e->getMessage(),
-        'timestamp' => date('Y-m-d H:i:s')
-    ], JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES);
+        'message' => $e->getMessage()
+    ]), JSON_PRETTY_PRINT);
 }
 ?>
