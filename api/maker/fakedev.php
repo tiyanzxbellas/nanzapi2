@@ -1,62 +1,77 @@
 <?php
 error_reporting(0);
 ini_set('display_errors', '0');
-// Deskripsi: Tiyanz API - FakeDev Card Wrapper
-// Contoh: {"foto":"https://filegoat.s3.de.io.cloud.ovh.net/8342cda4-ec06-4c04-ae16-0fa16a30c369/file_0000000074d47208bec22b89425caf8b.png","nama":"TiyanzCode","bio":"Have a Great Code"}
-// JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
-// @param foto URL Foto Profil
-// @param nama Nama / Judul Utama
-// @param bio Username / Subtitle
 
-header('Content-Type: image/png; charset=utf-8');
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
+// Deskripsi: FakeDev Card Generator
+// Parameter: -profile "url" -name "nama" -bio "bio"
 
 // ========== CREDIT ==========
 $credit = ['creator' => 'Tiyanz'];
 
-$foto   = trim($_GET['foto'] ?? '');
-$nama   = trim($_GET['nama'] ?? 'Tiyanz');
-$bio    = trim($_GET['bio'] ?? '@TiyanzApi');
-
-if (empty($foto)) {
-    header('Content-Type: application/json');
-    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'msg' => 'foto diperlukan']);
-    exit;
+// Fungsi encode URL (sama seperti di C++)
+function encode($v) {
+    $out = '';
+    for ($i = 0; $i < strlen($v); $i++) {
+        $c = $v[$i];
+        if (ctype_alnum($c) || $c == '-' || $c == '_' || $c == '.' || $c == '~') {
+            $out .= $c;
+        } else {
+            $out .= '%' . strtoupper(dechex(ord($c)));
+        }
+    }
+    return $out;
 }
 
-// Forward ke API asli
-$url = 'https://api-tiyanz.vercel.app/maker/fakedev?' . http_build_query([
-    'urlfoto' => $foto,
-    'text1' => $nama,
-    'text2' => $bio,
-]);
+// Ambil parameter dari GET
+$profile = trim($_GET['profile'] ?? '');
+$name = trim($_GET['name'] ?? '');
+$bio = trim($_GET['bio'] ?? '');
 
-$ch = curl_init($url);
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_TIMEOUT => 30,
-    CURLOPT_USERAGENT => 'Mozilla/5.0',
-    CURLOPT_HTTPHEADER => ['Accept: image/png'],
-]);
-
-$imageData = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-curl_close($ch);
-
-if ($httpCode !== 200 || empty($imageData)) {
-    header('Content-Type: application/json');
-    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'msg' => 'Gagal fetch dari API asli', 'http_code' => $httpCode]);
-    exit;
+// Validasi parameter (sama seperti di C++)
+if (empty($profile) || empty($name) || empty($bio)) {
+    echo "pakai: ./fakedev -profile \"url\" -name \"nama\" -bio \"bio\"" . PHP_EOL;
+    exit(1);
 }
 
-// Output gambar langsung
-header('Content-Type: ' . ($contentType ?: 'image/png'));
-echo $imageData;
+// Buat URL dengan encoding (sama seperti di C++)
+$url = "https://api.azbry.com/api/maker/fakedev?img=" . encode($profile) . "&name=" . encode($name) . "&bio=" . encode($bio);
+
+echo "mengambil gambar..." . PHP_EOL;
+
+try {
+    // Inisialisasi CURL (mirip http_client di C++)
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_FOLLOWLOCATION => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_TIMEOUT => 30,
+        CURLOPT_USERAGENT => 'Mozilla/5.0',
+    ]);
+
+    // Eksekusi request (mirip client.request di C++)
+    $imageData = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+    $error = curl_error($ch);
+    curl_close($ch);
+
+    // Cek status code (sama seperti di C++)
+    if ($httpCode !== 200 || $error) {
+        echo "gagal: " . $httpCode . PHP_EOL;
+        if ($error) {
+            echo "error: " . $error . PHP_EOL;
+        }
+        exit(1);
+    }
+
+    // Simpan file (mirip file_stream di C++)
+    $filename = "fakedev.jpg";
+    file_put_contents($filename, $imageData);
+    echo "tersimpan: " . $filename . PHP_EOL;
+
+} catch (Exception $e) {
+    echo "error: " . $e->getMessage() . PHP_EOL;
+    exit(1);
+}
 ?>
