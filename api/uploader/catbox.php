@@ -1,13 +1,32 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', '0');
+error_reporting(E_ALL);
+ini_set('display_errors', '1');
+// Deskripsi: Catbox.moe Uploader (DEBUG)
+// Contoh: {"file": "pilih_file.jpg"}
+
 header('Content-Type: application/json; charset=utf-8');
 
-$credit = ['creator' => 'Tiyanz'];
+$credit = [
+    'creator' => 'Tiyanz'
+];
 
 try {
-    if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-        throw new Exception('File wajib diupload');
+    // DEBUG: Cek apakah file diterima
+    if (!isset($_FILES['file'])) {
+        throw new Exception('No file received in $_FILES');
+    }
+    
+    if ($_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+        $errors = [
+            UPLOAD_ERR_INI_SIZE => 'File terlalu besar (max upload ini)',
+            UPLOAD_ERR_FORM_SIZE => 'File terlalu besar (max form)',
+            UPLOAD_ERR_PARTIAL => 'File hanya terupload sebagian',
+            UPLOAD_ERR_NO_FILE => 'Tidak ada file yang diupload',
+            UPLOAD_ERR_NO_TMP_DIR => 'Temporary folder hilang',
+            UPLOAD_ERR_CANT_WRITE => 'Gagal menulis file',
+            UPLOAD_ERR_EXTENSION => 'Ekstensi PHP menghentikan upload'
+        ];
+        throw new Exception('Upload error: ' . ($errors[$_FILES['file']['error']] ?? 'Unknown error'));
     }
 
     $file = $_FILES['file'];
@@ -15,34 +34,51 @@ try {
     $fileName = $file['name'];
     $fileSize = $file['size'];
 
+    // DEBUG: Cek file temporer
+    if (!file_exists($fileTmp)) {
+        throw new Exception('Temporary file not found: ' . $fileTmp);
+    }
+
     if ($fileSize > 200 * 1024 * 1024) {
         throw new Exception('File terlalu besar (max 200MB)');
     }
 
-    // ========== UPLOAD KE CATBOX ==========
-    $postData = [
-        'reqtype' => 'fileupload',
-        'fileToUpload' => new CURLFile($fileTmp, mime_content_type($fileTmp), $fileName)
+    // ========== DEBUG: TAMPILKAN INFORMASI FILE ==========
+    $debug = [
+        'tmp_name' => $fileTmp,
+        'name' => $fileName,
+        'size' => $fileSize,
+        'mime' => mime_content_type($fileTmp),
+        'exists' => file_exists($fileTmp)
     ];
+
+    // ========== UPLOAD KE CATBOX ==========
+    $boundary = md5(time());
+    $body = "--$boundary\r\n";
+    $body .= "Content-Disposition: form-data; name=\"reqtype\"\r\n\r\n";
+    $body .= "fileupload\r\n";
+    $body .= "--$boundary\r\n";
+    $body .= "Content-Disposition: form-data; name=\"fileToUpload\"; filename=\"" . basename($fileName) . "\"\r\n";
+    $body .= "Content-Type: " . mime_content_type($fileTmp) . "\r\n\r\n";
+    $body .= file_get_contents($fileTmp) . "\r\n";
+    $body .= "--$boundary--\r\n";
 
     $ch = curl_init('https://catbox.moe/user/api.php');
     
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
     curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
     curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_VERBOSE, true);
     
-    // HEADER LENGKAP
     curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept: application/json, text/plain, */*',
-        'Accept-Language: en-US,en;q=0.9',
+        'Content-Type: multipart/form-data; boundary=' . $boundary,
+        'Content-Length: ' . strlen($body),
+        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
         'Origin: https://catbox.moe',
-        'Referer: https://catbox.moe/',
-        'Content-Type: multipart/form-data'
+        'Referer: https://catbox.moe/'
     ]);
 
     $response = curl_exec($ch);
@@ -54,58 +90,19 @@ try {
         throw new Exception('CURL Error: ' . $error);
     }
 
-    // Response 412 biasanya karena CURLFile bermasalah
-    if ($http_code === 412) {
-        // COBA METHOD ALTERNATIF: PAKAI @ (deprecated tapi kadang work)
-        $ch = curl_init('https://catbox.moe/user/api.php');
-        
-        $postDataAlt = [
-            'reqtype' => 'fileupload',
-            'fileToUpload' => "@$fileTmp",
-            'name' => $fileName
-        ];
-        
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, $postDataAlt);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, [
-            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-            'Origin: https://catbox.moe',
-            'Referer: https://catbox.moe/'
-        ]);
-        
-        $response = curl_exec($ch);
-        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        $error = curl_error($ch);
-        curl_close($ch);
-        
-        if ($error) {
-            throw new Exception('CURL Error (alt): ' . $error);
-        }
-        
-        if ($http_code !== 200) {
-            throw new Exception('HTTP Error (alt): ' . $http_code . ' - ' . $response);
-        }
-    } elseif ($http_code !== 200) {
+    if ($http_code !== 200) {
         throw new Exception('HTTP Error: ' . $http_code . ' - ' . $response);
     }
 
     $url = trim($response);
     
-    // Validasi response
     if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
         throw new Exception('Upload gagal: ' . $url);
     }
 
-    if (strpos(strtolower($url), 'error') !== false || strpos($url, 'http') === false) {
-        throw new Exception('Catbox Error: ' . $url);
-    }
-
     echo json_encode(array_merge($credit, [
         'status' => true,
+        'debug' => $debug,
         'result' => [
             'url' => $url,
             'filename' => $fileName,
@@ -117,7 +114,8 @@ try {
     http_response_code(500);
     echo json_encode(array_merge($credit, [
         'status' => false,
-        'message' => $e->getMessage()
+        'message' => $e->getMessage(),
+        'debug' => isset($debug) ? $debug : null
     ]));
 }
 ?>
