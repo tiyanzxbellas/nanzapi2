@@ -1,121 +1,127 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', '1');
-// Deskripsi: Catbox.moe Uploader (DEBUG)
+/*
+ * [ Catbox.moe ]
+ * creator : Tiyanz
+ * base    : https://catbox.moe
+ * channel : https://whatsapp.com/channel/0029VbCpRwY2ZjChYNTEFj1G
+ * support : me with follow my channel
+ */
+
+error_reporting(0);
+ini_set('display_errors', '0');
+// Deskripsi: Catbox.moe Uploader (Node.js style)
 // Contoh: {"file": "pilih_file.jpg"}
 
 header('Content-Type: application/json; charset=utf-8');
 
-$credit = [
-    'creator' => 'Tiyanz'
-];
+// Fungsi uploadCatbox (mirip versi Node.js)
+function uploadCatbox($filePath) {
+    try {
+        if (!file_exists($filePath)) {
+            return ['success' => false, 'error' => 'File not found'];
+        }
 
-try {
-    // DEBUG: Cek apakah file diterima
-    if (!isset($_FILES['file'])) {
-        throw new Exception('No file received in $_FILES');
+        $fileName = basename($filePath);
+        $fileSize = filesize($filePath);
+        
+        if ($fileSize > 200 * 1024 * 1024) {
+            return ['success' => false, 'error' => 'File terlalu besar (max 200MB)'];
+        }
+
+        // ========== BUAT MULTIPART MANUAL ==========
+        $boundary = md5(time());
+        $body = "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=\"reqtype\"\r\n\r\n";
+        $body .= "fileupload\r\n";
+        $body .= "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=\"userhash\"\r\n\r\n";
+        $body .= "\r\n"; // kosong untuk anonymous
+        $body .= "--$boundary\r\n";
+        $body .= "Content-Disposition: form-data; name=\"fileToUpload\"; filename=\"" . $fileName . "\"\r\n";
+        $body .= "Content-Type: " . mime_content_type($filePath) . "\r\n\r\n";
+        $body .= file_get_contents($filePath) . "\r\n";
+        $body .= "--$boundary--\r\n";
+
+        $ch = curl_init('https://catbox.moe/user/api.php');
+        
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 300); // 5 menit (mirip timeout Node.js)
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+        
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: multipart/form-data; boundary=' . $boundary,
+            'Content-Length: ' . strlen($body),
+            'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:152.0) Gecko/20100101 Firefox/152.0',
+            'Accept: */*',
+            'Accept-Language: en-US,en;q=0.9',
+            'Origin: https://catbox.moe',
+            'Referer: https://catbox.moe/'
+        ]);
+
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            return ['success' => false, 'error' => 'CURL Error: ' . $error];
+        }
+
+        if ($http_code !== 200) {
+            return ['success' => false, 'error' => 'HTTP ' . $http_code . ': ' . $response];
+        }
+
+        $data = trim($response);
+        
+        // Validasi (mirip versi Node.js)
+        if ($data && strpos($data, 'https://files.catbox.moe/') === 0) {
+            return ['success' => true, 'url' => $data];
+        } else {
+            return ['success' => false, 'error' => $data];
+        }
+        
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
     }
-    
-    if ($_FILES['file']['error'] !== UPLOAD_ERR_OK) {
-        $errors = [
-            UPLOAD_ERR_INI_SIZE => 'File terlalu besar (max upload ini)',
-            UPLOAD_ERR_FORM_SIZE => 'File terlalu besar (max form)',
-            UPLOAD_ERR_PARTIAL => 'File hanya terupload sebagian',
-            UPLOAD_ERR_NO_FILE => 'Tidak ada file yang diupload',
-            UPLOAD_ERR_NO_TMP_DIR => 'Temporary folder hilang',
-            UPLOAD_ERR_CANT_WRITE => 'Gagal menulis file',
-            UPLOAD_ERR_EXTENSION => 'Ekstensi PHP menghentikan upload'
-        ];
-        throw new Exception('Upload error: ' . ($errors[$_FILES['file']['error']] ?? 'Unknown error'));
+}
+
+// ========== HANDLE REQUEST ==========
+try {
+    // Cek apakah ada file diupload
+    if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+        throw new Exception('File wajib diupload');
     }
 
     $file = $_FILES['file'];
     $fileTmp = $file['tmp_name'];
-    $fileName = $file['name'];
-    $fileSize = $file['size'];
-
-    // DEBUG: Cek file temporer
-    if (!file_exists($fileTmp)) {
-        throw new Exception('Temporary file not found: ' . $fileTmp);
-    }
-
-    if ($fileSize > 200 * 1024 * 1024) {
-        throw new Exception('File terlalu besar (max 200MB)');
-    }
-
-    // ========== DEBUG: TAMPILKAN INFORMASI FILE ==========
-    $debug = [
-        'tmp_name' => $fileTmp,
-        'name' => $fileName,
-        'size' => $fileSize,
-        'mime' => mime_content_type($fileTmp),
-        'exists' => file_exists($fileTmp)
-    ];
-
-    // ========== UPLOAD KE CATBOX ==========
-    $boundary = md5(time());
-    $body = "--$boundary\r\n";
-    $body .= "Content-Disposition: form-data; name=\"reqtype\"\r\n\r\n";
-    $body .= "fileupload\r\n";
-    $body .= "--$boundary\r\n";
-    $body .= "Content-Disposition: form-data; name=\"fileToUpload\"; filename=\"" . basename($fileName) . "\"\r\n";
-    $body .= "Content-Type: " . mime_content_type($fileTmp) . "\r\n\r\n";
-    $body .= file_get_contents($fileTmp) . "\r\n";
-    $body .= "--$boundary--\r\n";
-
-    $ch = curl_init('https://catbox.moe/user/api.php');
     
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_POST, true);
-    curl_setopt($ch, CURLOPT_POSTFIELDS, $body);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-    curl_setopt($ch, CURLOPT_VERBOSE, true);
+    // Panggil fungsi uploadCatbox
+    $result = uploadCatbox($fileTmp);
     
-    curl_setopt($ch, CURLOPT_HTTPHEADER, [
-        'Content-Type: multipart/form-data; boundary=' . $boundary,
-        'Content-Length: ' . strlen($body),
-        'User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Origin: https://catbox.moe',
-        'Referer: https://catbox.moe/'
-    ]);
-
-    $response = curl_exec($ch);
-    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    $error = curl_error($ch);
-    curl_close($ch);
-
-    if ($error) {
-        throw new Exception('CURL Error: ' . $error);
+    if ($result['success']) {
+        echo json_encode([
+            'creator' => 'Tiyanz',
+            'status' => true,
+            'result' => [
+                'url' => $result['url'],
+                'filename' => $file['name'],
+                'size' => $file['size']
+            ]
+        ]);
+    } else {
+        throw new Exception($result['error']);
     }
-
-    if ($http_code !== 200) {
-        throw new Exception('HTTP Error: ' . $http_code . ' - ' . $response);
-    }
-
-    $url = trim($response);
-    
-    if (empty($url) || !filter_var($url, FILTER_VALIDATE_URL)) {
-        throw new Exception('Upload gagal: ' . $url);
-    }
-
-    echo json_encode(array_merge($credit, [
-        'status' => true,
-        'debug' => $debug,
-        'result' => [
-            'url' => $url,
-            'filename' => $fileName,
-            'size' => $fileSize
-        ]
-    ]));
 
 } catch (Exception $e) {
     http_response_code(500);
-    echo json_encode(array_merge($credit, [
+    echo json_encode([
+        'creator' => 'Tiyanz',
         'status' => false,
-        'message' => $e->getMessage(),
-        'debug' => isset($debug) ? $debug : null
-    ]));
+        'message' => $e->getMessage()
+    ]);
 }
 ?>
