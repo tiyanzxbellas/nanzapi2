@@ -53,7 +53,7 @@ try {
         throw new Exception('File ZIP terlalu besar (max 100MB) - Ukuran Anda: ' . $fileSizeMB . 'MB');
     }
 
-    // Baca file ZIP sebagai base64 untuk diproses
+    // Baca file ZIP
     $zipContent = file_get_contents($fileTmp);
     if ($zipContent === false) {
         throw new Exception('Gagal membaca file ZIP');
@@ -67,7 +67,7 @@ try {
         $data = json_encode([
             'name' => $repoName,
             'private' => $isPrivate,
-            'auto_init' => false
+            'auto_init' => true // Set auto_init true agar branch main langsung ada
         ]);
 
         $ch = curl_init($url);
@@ -119,6 +119,31 @@ try {
         curl_close($ch);
 
         return $http_code === 200;
+    }
+
+    // Fungsi untuk mendapatkan default branch
+    function getDefaultBranch($token, $owner, $repoName) {
+        $url = "https://api.github.com/repos/{$owner}/{$repoName}";
+
+        $ch = curl_init($url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: token ' . $token,
+            'User-Agent: PHP-GitHub-Uploader'
+        ]);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+
+        $response = curl_exec($ch);
+        $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        curl_close($ch);
+
+        if ($http_code === 200) {
+            $data = json_decode($response, true);
+            return $data['default_branch'] ?? 'main';
+        }
+        return 'main';
     }
 
     // Fungsi untuk upload file ke GitHub
@@ -233,7 +258,6 @@ try {
                     throw new Exception('Gagal membaca file dari ZIP');
                 }
 
-                $isBinary = isBinaryFile($filePath);
                 $base64Content = base64_encode($fileContent);
 
                 uploadToGitHub($token, $owner, $repo, $filePath, $base64Content, $branch);
@@ -241,7 +265,7 @@ try {
                 $results[] = ['path' => $filePath, 'status' => 'success'];
 
                 // Delay untuk menghindari rate limit
-                usleep(200000); // 200ms
+                usleep(300000); // 300ms
 
             } catch (Exception $e) {
                 $failed++;
@@ -270,16 +294,31 @@ try {
             throw new Exception("Repository '{$repoName}' sudah ada. Gunakan mode 'existing' atau nama repo lain.");
         }
 
-        // Buat repository baru
+        // Buat repository baru dengan auto_init true
         $createResult = createRepository($token, $owner, $repoName, false);
         if (!$createResult) {
             throw new Exception('Gagal membuat repository baru');
+        }
+        
+        // Tunggu sebentar agar repository siap
+        sleep(3);
+        
+        // Dapatkan default branch dari repository
+        $actualBranch = getDefaultBranch($token, $owner, $repoName);
+        if ($actualBranch) {
+            $branch = $actualBranch;
         }
     } else {
         // Cek apakah repo exists
         $repoExists = checkRepository($token, $owner, $repoName);
         if (!$repoExists) {
             throw new Exception("Repository '{$repoName}' tidak ditemukan atau token tidak memiliki akses");
+        }
+        
+        // Dapatkan default branch
+        $actualBranch = getDefaultBranch($token, $owner, $repoName);
+        if ($actualBranch) {
+            $branch = $actualBranch;
         }
     }
 
