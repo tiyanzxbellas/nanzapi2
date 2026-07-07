@@ -1,13 +1,16 @@
 <?php
 /*
- * [ GITHUB UPLOAD & EXTRACTOR - OPTIMIZED FOR VERCEL ]
+ * [ GITHUB UPLOAD & EXTRACTOR - UNLIMITED VERCEL ]
  * creator : Tiyanz
  * source  : https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33
  * base    : https://github.com
  * 
  * Fitur: Upload file ZIP & ekstrak langsung ke GitHub via Token
- * Optimasi: Timeout handling, chunk processing, error recovery
- * Versi Vercel: Dengan batasan timeout 10 detik
+ * OPTIMASI UNLIMITED UNTUK VERCEL:
+ * - Tanpa batas jumlah file
+ * - Auto chunk processing
+ * - Resumeable upload (lanjut dari yang gagal)
+ * - Partial response jika timeout
  */
 
 error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
@@ -18,10 +21,8 @@ $isVercel = getenv('VERCEL') || getenv('NOW_REGION');
 $isServerless = $isVercel || getenv('AWS_LAMBDA_RUNTIME_API');
 
 if ($isServerless) {
-    // Vercel free tier: 10 detik timeout
     set_time_limit(10);
     ini_set('memory_limit', '256M');
-    // Vercel tidak support ignore_user_abort
 } else {
     set_time_limit(600);
     ini_set('memory_limit', '512M');
@@ -33,7 +34,7 @@ header('Content-Type: application/json; charset=utf-8');
 $credit = [
     'creator' => 'Tiyanz',
     'source' => 'https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33',
-    'version' => '2.1-vercel'
+    'version' => '3.0-unlimited-vercel'
 ];
 
 // ========== FUNGSI HELPER ==========
@@ -61,7 +62,30 @@ function bufferToBase64($buffer) {
     return base64_encode($buffer);
 }
 
-// ========== FUNGSI GITHUB API DENGAN TIMEOUT OPTIMAL ==========
+// ========== SESSION MANAGEMENT UNTUK RESUME ==========
+
+function saveProgress($sessionId, $data) {
+    $file = sys_get_temp_dir() . "/upload_progress_{$sessionId}.json";
+    file_put_contents($file, json_encode($data));
+    return $file;
+}
+
+function getProgress($sessionId) {
+    $file = sys_get_temp_dir() . "/upload_progress_{$sessionId}.json";
+    if (file_exists($file)) {
+        return json_decode(file_get_contents($file), true);
+    }
+    return null;
+}
+
+function clearProgress($sessionId) {
+    $file = sys_get_temp_dir() . "/upload_progress_{$sessionId}.json";
+    if (file_exists($file)) {
+        unlink($file);
+    }
+}
+
+// ========== FUNGSI GITHUB API ==========
 
 function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries = 2) {
     $encodedPath = implode('/', array_map('rawurlencode', explode('/', $filePath)));
@@ -70,7 +94,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
     $attempt = 0;
     while ($attempt < $maxRetries) {
         try {
-            // Cek SHA dengan timeout pendek
+            // Cek SHA
             $sha = null;
             $ch = curl_init($url);
             curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -79,7 +103,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
                 'User-Agent: PHP-GitHub-Uploader'
             ]);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 5); // 5 detik untuk GET
+            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
@@ -91,7 +115,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
                 }
             }
             
-            // Upload/Update dengan timeout 10 detik
+            // Upload
             $data = [
                 'message' => $sha ? "Update {$filePath}" : "Add {$filePath}",
                 'content' => $content
@@ -110,7 +134,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
                 'User-Agent: PHP-GitHub-Uploader'
             ]);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10); // 10 detik untuk PUT
+            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
@@ -119,11 +143,10 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
                 return json_decode($response, true);
             }
             
-            // Rate limit handling
             if ($httpCode === 403) {
                 $attempt++;
                 if ($attempt < $maxRetries) {
-                    usleep(500000 * $attempt); // 0.5s, 1s backoff
+                    usleep(500000 * $attempt);
                 }
                 continue;
             }
@@ -135,7 +158,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
             if ($attempt >= $maxRetries) {
                 throw new Exception("Gagal upload {$filePath}: " . $e->getMessage());
             }
-            usleep(500000); // 0.5s delay
+            usleep(500000);
         }
     }
 }
@@ -188,9 +211,9 @@ function checkRepository($token, $owner, $repoName) {
     return $httpCode === 200;
 }
 
-// ========== PROSES ZIP OPTIMAL UNTUK VERCEL ==========
+// ========== PROSES ZIP UNLIMITED DENGAN CHUNK ==========
 
-function processZipFileVercel($zipBuffer, $token, $owner, $repo, &$progress = null) {
+function processZipUnlimited($zipBuffer, $token, $owner, $repo, $sessionId = null, $offset = 0) {
     global $isServerless;
     
     $zip = new ZipArchive();
@@ -202,22 +225,11 @@ function processZipFileVercel($zipBuffer, $token, $owner, $repo, &$progress = nu
         throw new Exception('Gagal membuka file ZIP');
     }
     
-    // Batasi jumlah file untuk Vercel (max 20 file)
-    $maxFiles = $isServerless ? 20 : 100;
-    if ($zip->numFiles > $maxFiles) {
-        $zip->close();
-        unlink($tempZip);
-        throw new Exception("ZIP memiliki {$zip->numFiles} file, melebihi batas Vercel {$maxFiles} file");
-    }
-    
+    // Kumpulkan semua file (TANPA BATAS)
     $fileList = [];
-    for ($i = 0; $i < $zip->numFiles; $i++) {
+    for ($i = $offset; $i < $zip->numFiles; $i++) {
         $stat = $zip->statIndex($i);
         if (!$stat['size'] && substr($stat['name'], -1) === '/') {
-            continue;
-        }
-        // Skip file terlalu besar (>2MB) di Vercel
-        if ($isServerless && $stat['size'] > 2 * 1024 * 1024) {
             continue;
         }
         $fileList[] = [
@@ -230,42 +242,63 @@ function processZipFileVercel($zipBuffer, $token, $owner, $repo, &$progress = nu
     if (empty($fileList)) {
         $zip->close();
         unlink($tempZip);
-        throw new Exception('Tidak ada file yang valid ditemukan dalam ZIP');
+        return [
+            'uploaded' => 0,
+            'failed' => 0,
+            'total' => 0,
+            'completed' => true,
+            'results' => []
+        ];
     }
     
+    $total = count($fileList);
     $uploaded = 0;
     $failed = 0;
-    $skipped = 0;
     $results = [];
-    $total = count($fileList);
-    $progress = ['current' => 0, 'total' => $total];
+    $processed = 0;
     
-    // Batch lebih kecil untuk Vercel
-    $batchSize = $isServerless ? 3 : 5;
+    // Chunk processing: proses per 2 file untuk Vercel
+    $chunkSize = $isServerless ? 2 : 5;
     $startTime = time();
-    $maxExecutionTime = $isServerless ? 8 : 580; // 8 detik untuk Vercel
+    $maxExecutionTime = $isServerless ? 8 : 580;
     
-    for ($i = 0; $i < $total; $i += $batchSize) {
-        // Cek timeout untuk Vercel
+    for ($i = 0; $i < $total; $i += $chunkSize) {
+        // Cek timeout
         if ($isServerless && (time() - $startTime) > $maxExecutionTime) {
+            // Simpan progress untuk resume
+            if ($sessionId) {
+                $progressData = [
+                    'offset' => $offset + $i,
+                    'uploaded' => $uploaded,
+                    'failed' => $failed,
+                    'results' => $results,
+                    'total_files' => $zip->numFiles
+                ];
+                saveProgress($sessionId, $progressData);
+            }
+            
             $zip->close();
             unlink($tempZip);
-            throw new Exception("Timeout Vercel: hanya {$uploaded} file dari {$total} yang terupload");
+            
+            return [
+                'uploaded' => $uploaded,
+                'failed' => $failed,
+                'total' => $zip->numFiles,
+                'processed' => $processed + $uploaded + $failed,
+                'results' => $results,
+                'completed' => false,
+                'partial' => true,
+                'session_id' => $sessionId,
+                'message' => "Timeout, silahkan lanjutkan dengan session_id: {$sessionId}",
+                'next_offset' => $offset + $i
+            ];
         }
         
-        $batch = array_slice($fileList, $i, $batchSize);
+        $chunk = array_slice($fileList, $i, $chunkSize);
         
-        foreach ($batch as $file) {
+        foreach ($chunk as $file) {
             try {
                 $filePath = $file['name'];
-                
-                // Skip file binary besar
-                if ($isBinaryFile($filePath) && $file['size'] > 1 * 1024 * 1024) {
-                    $skipped++;
-                    $results[] = ['path' => $filePath, 'status' => 'skipped', 'reason' => 'Binary file too large'];
-                    continue;
-                }
-                
                 $content = $zip->getFromIndex($file['index']);
                 if ($content === false) {
                     throw new Exception('Gagal membaca file');
@@ -282,151 +315,56 @@ function processZipFileVercel($zipBuffer, $token, $owner, $repo, &$progress = nu
                 $results[] = ['path' => $file['name'], 'status' => 'failed', 'error' => $e->getMessage()];
             }
             
-            $progress['current'] = $uploaded + $failed + $skipped;
+            $processed++;
         }
         
-        // Delay minimal untuk Vercel
-        if ($i + $batchSize < $total) {
-            usleep(50000); // 50ms
+        // Delay minimal
+        if ($i + $chunkSize < $total) {
+            usleep($isServerless ? 30000 : 100000);
         }
     }
     
     $zip->close();
     unlink($tempZip);
     
-    return [
-        'uploaded' => $uploaded,
-        'failed' => $failed,
-        'skipped' => $skipped,
-        'total' => $total + $skipped,
-        'results' => $results,
-        'is_vercel' => $isServerless
-    ];
-}
-
-// ========== PROSES ALTERNATIF - EKSTRAK DULU (OPTIMAL) ==========
-
-function processZipByExtractVercel($zipBuffer, $token, $owner, $repo, &$progress = null) {
-    global $isServerless;
-    
-    $tempZip = tempnam(sys_get_temp_dir(), 'zip_');
-    file_put_contents($tempZip, $zipBuffer);
-    
-    $extractPath = sys_get_temp_dir() . '/extract_' . uniqid();
-    mkdir($extractPath, 0777, true);
-    
-    $zip = new ZipArchive();
-    if ($zip->open($tempZip) !== true) {
-        unlink($tempZip);
-        rmdir($extractPath);
-        throw new Exception('Gagal membuka ZIP');
+    // Hapus session jika selesai
+    if ($sessionId) {
+        clearProgress($sessionId);
     }
-    
-    // Ekstrak semua file
-    $zip->extractTo($extractPath);
-    $zip->close();
-    unlink($tempZip);
-    
-    // Scan files dengan batasan
-    $files = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($extractPath, RecursiveDirectoryIterator::SKIP_DOTS)
-    );
-    
-    $uploaded = 0;
-    $failed = 0;
-    $skipped = 0;
-    $results = [];
-    $total = 0;
-    $fileList = [];
-    
-    // Kumpulkan file dengan batasan
-    foreach ($files as $file) {
-        if ($file->isDir()) continue;
-        
-        // Skip file > 2MB di Vercel
-        if ($isServerless && $file->getSize() > 2 * 1024 * 1024) {
-            $skipped++;
-            $results[] = ['path' => $file->getFilename(), 'status' => 'skipped', 'reason' => 'File too large'];
-            continue;
-        }
-        
-        $fileList[] = $file;
-        $total++;
-        
-        // Batasi total file untuk Vercel
-        if ($isServerless && $total >= 20) {
-            break;
-        }
-    }
-    
-    $progress = ['current' => 0, 'total' => $total];
-    $startTime = time();
-    $maxExecutionTime = $isServerless ? 8 : 580;
-    
-    foreach ($fileList as $file) {
-        // Cek timeout
-        if ($isServerless && (time() - $startTime) > $maxExecutionTime) {
-            throw new Exception("Timeout Vercel: hanya {$uploaded} file dari {$total} yang terupload");
-        }
-        
-        try {
-            $relativePath = substr($file->getPathname(), strlen($extractPath) + 1);
-            $content = file_get_contents($file->getPathname());
-            $base64Content = bufferToBase64($content);
-            
-            uploadToGitHub($token, $owner, $repo, $relativePath, $base64Content, 2);
-            
-            $uploaded++;
-            $results[] = ['path' => $relativePath, 'status' => 'success'];
-            
-        } catch (Exception $e) {
-            $failed++;
-            $results[] = ['path' => $relativePath, 'status' => 'failed', 'error' => $e->getMessage()];
-        }
-        
-        $progress['current'] = $uploaded + $failed + $skipped;
-        usleep(30000); // 30ms delay
-    }
-    
-    // Cleanup
-    foreach (new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($extractPath, RecursiveDirectoryIterator::CHILD_FIRST)
-    ) as $file) {
-        if ($file->isDir()) {
-            rmdir($file->getPathname());
-        } else {
-            unlink($file->getPathname());
-        }
-    }
-    rmdir($extractPath);
     
     return [
         'uploaded' => $uploaded,
         'failed' => $failed,
-        'skipped' => $skipped,
-        'total' => $total + $skipped,
+        'total' => $zip->numFiles,
+        'processed' => $processed,
         'results' => $results,
-        'is_vercel' => $isServerless
+        'completed' => true,
+        'partial' => false
     ];
 }
 
 // ========== HANDLE REQUEST ==========
 
 try {
-    // Deteksi environment di response
+    // Meta response
     $responseMeta = [
         'environment' => $isServerless ? 'Vercel' : 'Standard',
-        'timeout_limit' => $isServerless ? '10 seconds' : '600 seconds'
+        'timeout_limit' => $isServerless ? '10 seconds' : '600 seconds',
+        'max_files' => 'UNLIMITED'
     ];
     
+    // Cek apakah ini request resume
+    $isResume = isset($_POST['session_id']) && !empty($_POST['session_id']);
+    
     // Validasi parameter
-    if (!isset($_POST['token']) || !isset($_POST['owner']) || !isset($_POST['repo']) || !isset($_POST['mode'])) {
+    if (!isset($_POST['token']) || !isset($_POST['owner']) || !isset($_POST['repo'])) {
         throw new Exception(
             "Parameter wajib:\n" .
             "token - GitHub Personal Access Token (repo scope)\n" .
             "owner - Username GitHub\n" .
             "repo - Nama repository\n" .
-            "mode - new (buat baru) atau existing (pakai yg ada)\n\n" .
+            "mode - new (buat baru) atau existing (pakai yg ada)\n" .
+            "session_id - (optional) untuk resume upload\n\n" .
             "Contoh: token=ghp_xxxxx&owner=jerexd&repo=my-repo&mode=new"
         );
     }
@@ -434,7 +372,7 @@ try {
     $token = trim($_POST['token']);
     $owner = trim($_POST['owner']);
     $repoName = trim($_POST['repo']);
-    $repoType = trim($_POST['mode']);
+    $repoType = isset($_POST['mode']) ? trim($_POST['mode']) : 'existing';
     
     // Validasi token format
     if (!preg_match('/^ghp_[a-zA-Z0-9]{36}$/', $token)) {
@@ -443,6 +381,51 @@ try {
     
     if ($repoType !== 'new' && $repoType !== 'existing') {
         throw new Exception("Mode harus 'new' atau 'existing'!");
+    }
+    
+    // Handle resume
+    if ($isResume) {
+        $sessionId = trim($_POST['session_id']);
+        $progress = getProgress($sessionId);
+        
+        if (!$progress) {
+            throw new Exception("Session ID tidak valid atau sudah expired");
+        }
+        
+        // Resume proses
+        $result = processZipUnlimited(
+            file_get_contents($_FILES['file']['tmp_name']),
+            $token,
+            $owner,
+            $repoName,
+            $sessionId,
+            $progress['offset']
+        );
+        
+        // Merge hasil sebelumnya
+        $result['results'] = array_merge($progress['results'], $result['results']);
+        $result['uploaded'] = $progress['uploaded'] + $result['uploaded'];
+        $result['failed'] = $progress['failed'] + $result['failed'];
+        $result['total'] = $progress['total_files'];
+        
+        echo json_encode([
+            'creator' => 'Tiyanz',
+            'source' => 'https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33',
+            'version' => '3.0-unlimited-vercel',
+            'status' => true,
+            'environment' => $responseMeta,
+            'type' => 'resume',
+            'result' => [
+                'repository' => "https://github.com/{$owner}/{$repoName}",
+                'total_files' => $result['total'],
+                'uploaded' => $result['uploaded'],
+                'failed' => $result['failed'],
+                'success_rate' => $result['total'] > 0 ? round(($result['uploaded'] / $result['total']) * 100, 2) . '%' : '0%',
+                'completed' => $result['completed'],
+                'session_id' => $sessionId
+            ]
+        ], JSON_PRETTY_PRINT);
+        exit;
     }
     
     // Cek file ZIP
@@ -461,10 +444,10 @@ try {
         throw new Exception('File harus berformat ZIP');
     }
     
-    // Batasi ukuran untuk Vercel (max 10MB)
-    $maxSize = $isServerless ? 10 * 1024 * 1024 : 20 * 1024 * 1024;
+    // Batasi ukuran (tetap 20MB)
+    $maxSize = 20 * 1024 * 1024;
     if ($fileSize > $maxSize) {
-        throw new Exception('File ZIP terlalu besar (max ' . ($isServerless ? '10MB' : '20MB') . ')');
+        throw new Exception('File ZIP terlalu besar (max 20MB)');
     }
     
     $zipBuffer = file_get_contents($fileTmp);
@@ -491,14 +474,11 @@ try {
         }
     }
     
-    // Pilih metode proses - selalu gunakan extract method untuk Vercel
-    $useExtractMethod = true;
+    // Generate session ID untuk resume
+    $sessionId = uniqid('upload_', true);
     
-    if ($useExtractMethod) {
-        $result = processZipByExtractVercel($zipBuffer, $token, $owner, $repo, $progress);
-    } else {
-        $result = processZipFileVercel($zipBuffer, $token, $owner, $repo, $progress);
-    }
+    // Proses ZIP unlimited
+    $result = processZipUnlimited($zipBuffer, $token, $owner, $repo, $sessionId, 0);
     
     $processTime = round(microtime(true) - $startProcessTime, 2);
     
@@ -507,7 +487,7 @@ try {
     $response = [
         'creator' => 'Tiyanz',
         'source' => 'https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33',
-        'version' => '2.1-vercel',
+        'version' => '3.0-unlimited-vercel',
         'status' => true,
         'environment' => $responseMeta,
         'result' => [
@@ -516,12 +496,30 @@ try {
             'total_files' => $result['total'],
             'uploaded' => $result['uploaded'],
             'failed' => $result['failed'],
-            'skipped' => isset($result['skipped']) ? $result['skipped'] : 0,
             'success_rate' => $result['total'] > 0 ? round(($result['uploaded'] / $result['total']) * 100, 2) . '%' : '0%',
             'process_time' => $processTime . 's',
-            'is_vercel_optimized' => $isServerless
+            'completed' => $result['completed']
         ]
     ];
+    
+    // Jika partial (timeout), berikan session_id untuk resume
+    if (isset($result['partial']) && $result['partial']) {
+        $response['result']['partial'] = true;
+        $response['result']['session_id'] = $sessionId;
+        $response['result']['next_offset'] = $result['next_offset'];
+        $response['result']['message'] = $result['message'];
+        $response['result']['resume_instruction'] = [
+            'method' => 'POST',
+            'params' => [
+                'token' => $token,
+                'owner' => $owner,
+                'repo' => $repo,
+                'mode' => $repoType,
+                'session_id' => $sessionId,
+                'file' => 'upload ZIP yang sama'
+            ]
+        ];
+    }
     
     if ($result['failed'] > 0) {
         $failedFiles = array_slice(
@@ -537,10 +535,6 @@ try {
         }
     }
     
-    if (isset($result['skipped']) && $result['skipped'] > 0) {
-        $response['result']['note'] = "{$result['skipped']} file di-skip karena terlalu besar atau binary untuk Vercel";
-    }
-    
     echo json_encode($response, JSON_PRETTY_PRINT);
     
 } catch (Exception $e) {
@@ -549,8 +543,7 @@ try {
         'status' => false,
         'message' => $e->getMessage(),
         'error_code' => $e->getCode(),
-        'environment' => $isServerless ? 'Vercel' : 'Standard',
-        'suggestion' => $isServerless ? 'Coba kurangi jumlah file di ZIP atau gunakan file yang lebih kecil' : null
+        'environment' => $isServerless ? 'Vercel' : 'Standard'
     ]), JSON_PRETTY_PRINT);
 }
 ?>
