@@ -3,9 +3,9 @@ error_reporting(0);
 ini_set('display_errors', '0');
 
 // ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
+$credit = ['creator' => 'TiyanzAPI'];
 
-// Fungsi encode URL (sama seperti di C++)
+// Fungsi encode URL
 function encode($v) {
     $out = '';
     $len = strlen($v);
@@ -23,7 +23,7 @@ function encode($v) {
 // Fungsi usage
 function usage() {
     echo "pakai: php fakedev.php -profile \"url_foto\" -name \"nama\" -bio \"bio\"\n";
-    echo "Contoh: php fakedev.php -profile \"https://example.com/avatar.jpg\" -name \"NanzzCode\" -bio \"Have a Great Code\"\n";
+    echo "Contoh: php fakedev.php -profile \"https://example.com/avatar.jpg\" -name \"tiyanz\" -bio \"gozse\"\n";
 }
 
 // ========== CLI MODE ==========
@@ -52,9 +52,16 @@ if (php_sapi_name() === 'cli') {
     }
     
     echo "mengambil gambar...\n";
+    echo "Profile: $profile\n";
+    echo "Name: $name\n";
+    echo "Bio: $bio\n";
     
-    // PAKAI API AZBRY (yang aktif)
-    $url = "https://api.azbry.com/api/maker/fakedev?img=" . encode($profile) . "&name=" . encode($name) . "&bio=" . encode($bio);
+    // PAKAI API TIYANZ
+    $url = "https://api.septyandaputra.my.id/api/maker/fakedev.php?" . http_build_query([
+        'img' => $profile,
+        'name' => $name,
+        'bio' => $bio
+    ]);
     
     echo "URL: $url\n";
     
@@ -68,12 +75,14 @@ if (php_sapi_name() === 'cli') {
         CURLOPT_HTTPHEADER => ['Accept: image/jpeg'],
     ]);
     
-    $imageData = curl_exec($ch);
+    $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
     $error = curl_error($ch);
     curl_close($ch);
     
-    if ($httpCode !== 200 || empty($imageData)) {
+    // Cek apakah response JSON (error) atau gambar
+    if ($httpCode !== 200 || empty($response)) {
         fwrite(STDERR, "gagal: HTTP " . $httpCode . "\n");
         if (!empty($error)) {
             fwrite(STDERR, "error: " . $error . "\n");
@@ -81,11 +90,18 @@ if (php_sapi_name() === 'cli') {
         exit(1);
     }
     
-    // Simpan sebagai JPG (sesuai API)
+    // Cek apakah response berupa JSON error
+    $json = json_decode($response, true);
+    if ($json && isset($json['status']) && $json['status'] === false) {
+        fwrite(STDERR, "error dari API: " . ($json['msg'] ?? 'Unknown error') . "\n");
+        exit(1);
+    }
+    
+    // Simpan sebagai JPG
     $filename = 'fakedev.jpg';
-    if (file_put_contents($filename, $imageData) !== false) {
+    if (file_put_contents($filename, $response) !== false) {
         echo "tersimpan: " . $filename . "\n";
-        echo "Ukuran: " . round(strlen($imageData) / 1024, 2) . " KB\n";
+        echo "Ukuran: " . round(strlen($response) / 1024, 2) . " KB\n";
     } else {
         fwrite(STDERR, "error: Gagal menyimpan file\n");
         exit(1);
@@ -95,7 +111,6 @@ if (php_sapi_name() === 'cli') {
 }
 
 // ========== WEB MODE ==========
-// Forward ke API AZBRY (bukan ke nanz)
 header("Access-Control-Allow-Origin: *");
 header("Access-Control-Allow-Methods: GET, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
@@ -105,7 +120,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit; 
 }
 
-// Ambil parameter (sesuai dengan API azbry)
+// Ambil parameter
 $img = trim($_GET['img'] ?? '');
 $name = trim($_GET['name'] ?? '');
 $bio = trim($_GET['bio'] ?? '');
@@ -114,14 +129,14 @@ if (empty($img) || empty($name) || empty($bio)) {
     header('Content-Type: application/json');
     echo json_encode([
         'status' => false, 
-        'creator' => 'Nanzz', 
+        'creator' => 'TiyanzAPI', 
         'msg' => 'Parameter diperlukan: img, name, bio'
     ]);
     exit;
 }
 
-// Forward ke API azbry
-$url = "https://api.azbry.com/api/maker/fakedev?" . http_build_query([
+// Forward ke API Tiyanz
+$url = "https://api.septyandaputra.my.id/api/maker/fakedev.php?" . http_build_query([
     'img' => $img,
     'name' => $name,
     'bio' => $bio
@@ -137,23 +152,36 @@ curl_setopt_array($ch, [
     CURLOPT_HTTPHEADER => ['Accept: image/jpeg'],
 ]);
 
-$imageData = curl_exec($ch);
+$response = curl_exec($ch);
 $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 $contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
 curl_close($ch);
 
-if ($httpCode !== 200 || empty($imageData)) {
+// Cek error
+if ($httpCode !== 200 || empty($response)) {
     header('Content-Type: application/json');
     echo json_encode([
         'status' => false, 
-        'creator' => 'Nanzz', 
+        'creator' => 'TiyanzAPI', 
         'msg' => 'Gagal fetch dari API', 
         'http_code' => $httpCode
     ]);
     exit;
 }
 
+// Cek apakah response JSON error
+$json = json_decode($response, true);
+if ($json && isset($json['status']) && $json['status'] === false) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => false,
+        'creator' => 'TiyanzAPI',
+        'msg' => $json['msg'] ?? 'API Error'
+    ]);
+    exit;
+}
+
 // Output gambar
 header('Content-Type: ' . ($contentType ?: 'image/jpeg'));
-echo $imageData;
+echo $response;
 ?>
