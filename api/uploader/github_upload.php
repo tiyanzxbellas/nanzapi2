@@ -5,11 +5,7 @@
  * source  : https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33
  * 
  * Fitur: Upload file ZIP & ekstrak langsung ke GitHub via Token
- * 1 ZIP = SEMUA FILE LANGSUNG DIUPLOAD!
- * 
- * Format: JSON API
- * Method: POST
- * Body: { "token": "...", "owner": "...", "repo": "...", "mode": "new|existing", "file": "base64..." }
+ * Support: JSON API + multipart/form-data
  */
 
 error_reporting(0);
@@ -17,7 +13,7 @@ ini_set('display_errors', '0');
 
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
-header('Access-Control-Allow-Methods: POST, OPTIONS');
+header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
 header('Access-Control-Allow-Headers: Content-Type, Authorization');
 
 // Handle preflight
@@ -26,20 +22,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-// Hanya POST
-if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
-    http_response_code(405);
-    echo json_encode([
-        'status' => false,
-        'message' => 'Method not allowed. Use POST.'
-    ]);
-    exit;
-}
-
 $credit = [
     'creator' => 'Tiyanz',
     'source' => 'https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33',
-    'version' => '6.0-rest-api'
+    'version' => '6.1-rest-api'
 ];
 
 // ========== FUNGSI HELPER ==========
@@ -156,7 +142,6 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
                 return json_decode($response, true);
             }
             
-            // Rate limit
             if ($httpCode === 403 || $httpCode === 429) {
                 $attempt++;
                 sleep(2 * $attempt);
@@ -247,12 +232,10 @@ function processZipFile($zipBuffer, $token, $owner, $repo) {
         throw new Exception('Gagal membuka file ZIP');
     }
     
-    // Kumpulkan SEMUA file
     $fileList = [];
     for ($i = 0; $i < $zip->numFiles; $i++) {
         $stat = $zip->statIndex($i);
         $name = $stat['name'];
-        // Skip direktori
         if (!$name || substr($name, -1) === '/') {
             continue;
         }
@@ -275,7 +258,6 @@ function processZipFile($zipBuffer, $token, $owner, $repo) {
     $results = [];
     $failedFiles = [];
     
-    // Proses SEMUA file
     foreach ($fileList as $file) {
         try {
             $filePath = $file['name'];
@@ -312,27 +294,202 @@ function processZipFile($zipBuffer, $token, $owner, $repo) {
 // ========== HANDLE REQUEST ==========
 
 try {
-    // Baca input JSON
-    $input = json_decode(file_get_contents('php://input'), true);
+    $token = null;
+    $owner = null;
+    $repoName = null;
+    $repoType = null;
+    $zipBuffer = null;
+    $fileName = null;
+
+    // === CEK METODE REQUEST ===
     
-    if (!$input) {
-        throw new Exception('Invalid JSON input. Please send valid JSON.');
+    if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+        // Tampilkan form HTML untuk testing
+        ?>
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>GitHub Upload API - Tiyanz</title>
+            <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1">
+            <style>
+                body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; background: #0d1117; color: #c9d1d9; }
+                .container { background: #161b22; padding: 30px; border-radius: 10px; border: 1px solid #30363d; }
+                h1 { color: #58a6ff; }
+                .form-group { margin-bottom: 20px; }
+                label { display: block; margin-bottom: 5px; font-weight: bold; color: #8b949e; }
+                input, select, textarea { width: 100%; padding: 10px; background: #0d1117; border: 1px solid #30363d; border-radius: 5px; color: #c9d1d9; font-size: 14px; }
+                input:focus, select:focus, textarea:focus { outline: none; border-color: #58a6ff; }
+                button { background: #238636; color: white; padding: 12px 30px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; }
+                button:hover { background: #2ea043; }
+                .note { background: #1f2937; padding: 15px; border-radius: 5px; margin-top: 20px; font-size: 13px; color: #8b949e; }
+                .note code { background: #0d1117; padding: 2px 6px; border-radius: 3px; color: #f0883e; }
+                .result { margin-top: 20px; padding: 15px; background: #0d1117; border-radius: 5px; border: 1px solid #30363d; white-space: pre-wrap; word-break: break-all; font-size: 12px; max-height: 500px; overflow: auto; }
+                .badge { display: inline-block; padding: 2px 10px; border-radius: 10px; font-size: 12px; }
+                .badge-success { background: #238636; color: white; }
+                .badge-danger { background: #da3633; color: white; }
+                .badge-warning { background: #d29922; color: white; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>📤 GitHub Upload & Extractor</h1>
+                <p style="color: #8b949e;">Upload file ZIP & ekstrak langsung ke GitHub</p>
+                <hr style="border-color: #30363d;">
+                
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label>🔑 GitHub Token</label>
+                        <input type="text" name="token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" required>
+                        <small style="color: #8b949e;">Personal Access Token (repo scope)</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>👤 Owner / Username</label>
+                        <input type="text" name="owner" placeholder="username_github" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📁 Repository Name</label>
+                        <input type="text" name="repo" placeholder="my-repo" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📌 Mode</label>
+                        <select name="mode" required>
+                            <option value="new">🆕 New - Buat repository baru</option>
+                            <option value="existing">📂 Existing - Pakai repository yang sudah ada</option>
+                        </select>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>📦 File ZIP</label>
+                        <input type="file" name="file" accept=".zip" required>
+                        <small style="color: #8b949e;">Max 20MB</small>
+                    </div>
+                    
+                    <button type="submit">🚀 Upload ke GitHub</button>
+                </form>
+                
+                <div class="note">
+                    <strong>📌 Info:</strong><br>
+                    • Token harus memiliki akses <code>repo</code><br>
+                    • Mode <code>new</code> akan membuat repository baru<br>
+                    • Mode <code>existing</code> upload ke repository yang sudah ada<br>
+                    • 1 ZIP = SEMUA FILE LANGSUNG DIUPLOAD!<br>
+                    • Source: <a href="https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33" target="_blank" style="color: #58a6ff;">Tiyanz Channel</a>
+                </div>
+                
+                <div id="result" class="result" style="display:none;"></div>
+            </div>
+            
+            <script>
+                document.getElementById('uploadForm').addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const resultDiv = document.getElementById('result');
+                    resultDiv.style.display = 'block';
+                    resultDiv.innerHTML = '⏳ Uploading...';
+                    resultDiv.style.color = '#d29922';
+                    
+                    const formData = new FormData(this);
+                    
+                    try {
+                        const response = await fetch(window.location.href, {
+                            method: 'POST',
+                            body: formData
+                        });
+                        
+                        const data = await response.json();
+                        resultDiv.style.color = '#c9d1d9';
+                        resultDiv.innerHTML = JSON.stringify(data, null, 2);
+                        
+                        if (data.status === true) {
+                            resultDiv.style.borderColor = '#238636';
+                        } else {
+                            resultDiv.style.borderColor = '#da3633';
+                        }
+                    } catch (error) {
+                        resultDiv.style.color = '#da3633';
+                        resultDiv.innerHTML = '❌ Error: ' + error.message;
+                    }
+                });
+            </script>
+        </body>
+        </html>
+        <?php
+        exit;
     }
+
+    // === POST: Cek apakah multipart atau JSON ===
     
-    // Validasi parameter
-    $required = ['token', 'owner', 'repo', 'mode'];
-    foreach ($required as $field) {
-        if (empty($input[$field])) {
-            throw new Exception("Parameter '{$field}' wajib diisi");
+    $contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+    
+    if (strpos($contentType, 'multipart/form-data') !== false) {
+        // === MULTIPART FORM DATA ===
+        
+        if (!isset($_POST['token']) || !isset($_POST['owner']) || !isset($_POST['repo']) || !isset($_POST['mode'])) {
+            throw new Exception("Parameter wajib: token, owner, repo, mode");
+        }
+        
+        $token = trim($_POST['token']);
+        $owner = trim($_POST['owner']);
+        $repoName = trim($_POST['repo']);
+        $repoType = trim($_POST['mode']);
+        
+        if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            throw new Exception('File ZIP wajib diupload');
+        }
+        
+        $fileTmp = $_FILES['file']['tmp_name'];
+        $fileName = $_FILES['file']['name'];
+        $fileSize = $_FILES['file']['size'];
+        
+        // Validasi file
+        $fileMime = mime_content_type($fileTmp);
+        if (!strpos($fileMime, 'zip') && !strpos($fileName, '.zip')) {
+            throw new Exception('File harus berformat ZIP');
+        }
+        
+        $maxSize = 20 * 1024 * 1024;
+        if ($fileSize > $maxSize) {
+            throw new Exception('File ZIP terlalu besar (max 20MB)');
+        }
+        
+        $zipBuffer = file_get_contents($fileTmp);
+        
+    } else {
+        // === JSON API ===
+        
+        $input = json_decode(file_get_contents('php://input'), true);
+        
+        if (!$input) {
+            throw new Exception('Invalid JSON input. Use multipart/form-data for file upload or send valid JSON.');
+        }
+        
+        $required = ['token', 'owner', 'repo', 'mode'];
+        foreach ($required as $field) {
+            if (empty($input[$field])) {
+                throw new Exception("Parameter '{$field}' wajib diisi");
+            }
+        }
+        
+        $token = trim($input['token']);
+        $owner = trim($input['owner']);
+        $repoName = trim($input['repo']);
+        $repoType = trim($input['mode']);
+        
+        if (empty($input['file'])) {
+            throw new Exception('File ZIP (base64) wajib diisi');
+        }
+        
+        $zipBuffer = base64_decode($input['file']);
+        if ($zipBuffer === false || empty($zipBuffer)) {
+            throw new Exception('File ZIP base64 tidak valid atau kosong');
         }
     }
     
-    $token = trim($input['token']);
-    $owner = trim($input['owner']);
-    $repoName = trim($input['repo']);
-    $repoType = trim($input['mode']);
+    // === VALIDASI UMUM ===
     
-    // Validasi format token
     if (!preg_match('/^ghp_[a-zA-Z0-9]{36}$/', $token) && !preg_match('/^github_pat_[a-zA-Z0-9_]+$/', $token)) {
         throw new Exception('Format token GitHub tidak valid. Harus dimulai dengan ghp_ atau github_pat_');
     }
@@ -341,35 +498,24 @@ try {
         throw new Exception("Mode harus 'new' atau 'existing'!");
     }
     
-    // Cek file ZIP (dari base64)
-    if (empty($input['file'])) {
-        throw new Exception('File ZIP (base64) wajib diisi');
-    }
-    
-    $zipBuffer = base64_decode($input['file']);
-    if ($zipBuffer === false || empty($zipBuffer)) {
-        throw new Exception('File ZIP base64 tidak valid atau kosong');
-    }
-    
-    // Validasi ZIP (cek header magic number)
+    // Validasi ZIP header
     $zipHeader = substr($zipBuffer, 0, 4);
     if ($zipHeader !== "PK\x03\x04" && $zipHeader !== "PK\x05\x06" && $zipHeader !== "PK\x07\x08") {
-        throw new Exception('File bukan ZIP yang valid (signature tidak cocok)');
+        throw new Exception('File bukan ZIP yang valid');
     }
     
     $fileSize = strlen($zipBuffer);
-    $maxSize = 20 * 1024 * 1024; // 20MB
+    $maxSize = 20 * 1024 * 1024;
     if ($fileSize > $maxSize) {
         throw new Exception('File ZIP terlalu besar (max 20MB)');
     }
     
     $zipSizeMB = number_format($fileSize / 1024 / 1024, 2);
     
-    // ========== PROSES UPLOAD ==========
+    // === PROSES UPLOAD ===
     
     $repo = $repoName;
     
-    // Create atau cek repository
     if ($repoType === 'new') {
         try {
             createRepository($token, $owner, $repoName, false);
@@ -385,13 +531,10 @@ try {
         }
     }
     
-    // Dapatkan default branch
     $defaultBranch = getDefaultBranch($token, $owner, $repo);
-    
-    // Proses ZIP
     $result = processZipFile($zipBuffer, $token, $owner, $repo);
     
-    // ========== RESPONSE ==========
+    // === RESPONSE ===
     
     $response = array_merge($credit, [
         'status' => true,
@@ -408,7 +551,6 @@ try {
         ]
     ]);
     
-    // Tambahkan detail jika ada error
     if ($result['failed'] > 0) {
         $response['data']['failed_files'] = $result['failed_files'];
     }
