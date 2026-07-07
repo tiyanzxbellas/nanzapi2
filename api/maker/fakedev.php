@@ -2,11 +2,11 @@
 error_reporting(0);
 ini_set('display_errors', '0');
 // Deskripsi: Tiyanz API - FakeDev Card Wrapper
-// Contoh: {"nama":"TiyanzCode","bio":"Have a Great Code","fotourl":"https://filegoat.s3.de.io.cloud.ovh.net/8342cda4-ec06-4c04-ae16-0fa16a30c369/file_0000000074d47208bec22b89425caf8b.png"}
+// Contoh: {"foto":"https://filegoat.s3.de.io.cloud.ovh.net/8342cda4-ec06-4c04-ae16-0fa16a30c369/file_0000000074d47208bec22b89425caf8b.png","nama":"TiyanzCode","bio":"Have a Great Code"}
 // JANGAN HAPUS CONTOH DIATAS - ITU FORMAT PARAMETER YANG BENAR
+// @param foto URL Foto Profil
 // @param nama Nama / Judul Utama
 // @param bio Username / Subtitle
-// @param fotourl URL Foto Profil
 
 header('Content-Type: image/png; charset=utf-8');
 header("Access-Control-Allow-Origin: *");
@@ -18,19 +18,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { http_response_code(200); exit; }
 // ========== CREDIT ==========
 $credit = ['creator' => 'Tiyanz'];
 
+$foto   = trim($_GET['foto'] ?? '');
 $nama   = trim($_GET['nama'] ?? 'Tiyanz');
 $bio    = trim($_GET['bio'] ?? '@TiyanzApi');
-$fotourl = trim($_GET['fotourl'] ?? '');
 
-if (empty($fotourl)) {
+if (empty($foto)) {
     header('Content-Type: application/json');
-    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'msg' => 'fotourl diperlukan']);
+    echo json_encode(['status' => false, 'creator' => 'Tiyanz', 'msg' => 'foto diperlukan']);
     exit;
 }
 
 // Forward ke API asli
 $url = 'https://api-tiyanz.vercel.app/maker/fakedev?' . http_build_query([
-    'urlfoto' => $fotourl,
+    'urlfoto' => $foto,
     'text1' => $nama,
     'text2' => $bio,
 ]);
