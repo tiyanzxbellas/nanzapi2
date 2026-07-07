@@ -1,40 +1,23 @@
 <?php
 /*
- * [ GITHUB UPLOAD & EXTRACTOR - UNLIMITED VERCEL ]
+ * [ GITHUB UPLOAD & EXTRACTOR - 1 ZIP ALL FILES ]
  * creator : Tiyanz
  * source  : https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33
- * base    : https://github.com
  * 
  * Fitur: Upload file ZIP & ekstrak langsung ke GitHub via Token
- * OPTIMASI UNLIMITED UNTUK VERCEL:
- * - Tanpa batas jumlah file
- * - Auto chunk processing
- * - Resumeable upload (lanjut dari yang gagal)
- * - Partial response jika timeout
+ * 1 ZIP = SEMUA FILE LANGSUNG DIUPLOAD!
+ * Support: Background processing, status check, unlimited files
  */
 
-error_reporting(E_ALL & ~E_WARNING & ~E_NOTICE);
+error_reporting(0);
 ini_set('display_errors', '0');
-
-// ========== DETEKSI ENVIRONMENT ==========
-$isVercel = getenv('VERCEL') || getenv('NOW_REGION');
-$isServerless = $isVercel || getenv('AWS_LAMBDA_RUNTIME_API');
-
-if ($isServerless) {
-    set_time_limit(10);
-    ini_set('memory_limit', '256M');
-} else {
-    set_time_limit(600);
-    ini_set('memory_limit', '512M');
-    ignore_user_abort(true);
-}
 
 header('Content-Type: application/json; charset=utf-8');
 
 $credit = [
     'creator' => 'Tiyanz',
     'source' => 'https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33',
-    'version' => '3.0-unlimited-vercel'
+    'version' => '4.0-one-shot-bg'
 ];
 
 // ========== FUNGSI HELPER ==========
@@ -46,8 +29,7 @@ function isBinaryFile($filename) {
         '.exe', '.dll', '.so', '.dylib', '.bin', '.dat',
         '.mp3', '.mp4', '.avi', '.mov', '.mkv', '.flv',
         '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx',
-        '.woff', '.woff2', '.ttf', '.eot', '.otf',
-        '.js.map', '.css.map'
+        '.woff', '.woff2', '.ttf', '.eot', '.otf'
     ];
     $lowerName = strtolower($filename);
     foreach ($binaryExtensions as $ext) {
@@ -62,32 +44,9 @@ function bufferToBase64($buffer) {
     return base64_encode($buffer);
 }
 
-// ========== SESSION MANAGEMENT UNTUK RESUME ==========
-
-function saveProgress($sessionId, $data) {
-    $file = sys_get_temp_dir() . "/upload_progress_{$sessionId}.json";
-    file_put_contents($file, json_encode($data));
-    return $file;
-}
-
-function getProgress($sessionId) {
-    $file = sys_get_temp_dir() . "/upload_progress_{$sessionId}.json";
-    if (file_exists($file)) {
-        return json_decode(file_get_contents($file), true);
-    }
-    return null;
-}
-
-function clearProgress($sessionId) {
-    $file = sys_get_temp_dir() . "/upload_progress_{$sessionId}.json";
-    if (file_exists($file)) {
-        unlink($file);
-    }
-}
-
 // ========== FUNGSI GITHUB API ==========
 
-function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries = 2) {
+function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries = 3) {
     $encodedPath = implode('/', array_map('rawurlencode', explode('/', $filePath)));
     $url = "https://api.github.com/repos/{$owner}/{$repo}/contents/{$encodedPath}";
     
@@ -103,7 +62,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
                 'User-Agent: PHP-GitHub-Uploader'
             ]);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 30);
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
@@ -115,7 +74,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
                 }
             }
             
-            // Upload
+            // Upload/Update
             $data = [
                 'message' => $sha ? "Update {$filePath}" : "Add {$filePath}",
                 'content' => $content
@@ -134,7 +93,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
                 'User-Agent: PHP-GitHub-Uploader'
             ]);
             curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+            curl_setopt($ch, CURLOPT_TIMEOUT, 60);
             $response = curl_exec($ch);
             $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
             curl_close($ch);
@@ -145,9 +104,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
             
             if ($httpCode === 403) {
                 $attempt++;
-                if ($attempt < $maxRetries) {
-                    usleep(500000 * $attempt);
-                }
+                sleep(2 * $attempt);
                 continue;
             }
             
@@ -158,7 +115,7 @@ function uploadToGitHub($token, $owner, $repo, $filePath, $content, $maxRetries 
             if ($attempt >= $maxRetries) {
                 throw new Exception("Gagal upload {$filePath}: " . $e->getMessage());
             }
-            usleep(500000);
+            sleep(1);
         }
     }
 }
@@ -181,7 +138,7 @@ function createRepository($token, $owner, $repoName, $isPrivate = false) {
         'User-Agent: PHP-GitHub-Uploader'
     ]);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
@@ -203,7 +160,7 @@ function checkRepository($token, $owner, $repoName) {
         'User-Agent: PHP-GitHub-Uploader'
     ]);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 5);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     curl_close($ch);
@@ -211,11 +168,9 @@ function checkRepository($token, $owner, $repoName) {
     return $httpCode === 200;
 }
 
-// ========== PROSES ZIP UNLIMITED DENGAN CHUNK ==========
+// ========== PROSES ZIP 1 SHOT ==========
 
-function processZipUnlimited($zipBuffer, $token, $owner, $repo, $sessionId = null, $offset = 0) {
-    global $isServerless;
-    
+function processZipOneShot($zipBuffer, $token, $owner, $repo, $sessionId) {
     $zip = new ZipArchive();
     $tempZip = tempnam(sys_get_temp_dir(), 'zip_');
     file_put_contents($tempZip, $zipBuffer);
@@ -225,9 +180,9 @@ function processZipUnlimited($zipBuffer, $token, $owner, $repo, $sessionId = nul
         throw new Exception('Gagal membuka file ZIP');
     }
     
-    // Kumpulkan semua file (TANPA BATAS)
+    // Kumpulkan SEMUA file
     $fileList = [];
-    for ($i = $offset; $i < $zip->numFiles; $i++) {
+    for ($i = 0; $i < $zip->numFiles; $i++) {
         $stat = $zip->statIndex($i);
         if (!$stat['size'] && substr($stat['name'], -1) === '/') {
             continue;
@@ -242,129 +197,116 @@ function processZipUnlimited($zipBuffer, $token, $owner, $repo, $sessionId = nul
     if (empty($fileList)) {
         $zip->close();
         unlink($tempZip);
-        return [
-            'uploaded' => 0,
-            'failed' => 0,
-            'total' => 0,
-            'completed' => true,
-            'results' => []
-        ];
+        throw new Exception('Tidak ada file yang ditemukan dalam ZIP');
     }
     
     $total = count($fileList);
     $uploaded = 0;
     $failed = 0;
     $results = [];
-    $processed = 0;
+    $statusFile = sys_get_temp_dir() . "/upload_status_{$sessionId}.json";
     
-    // Chunk processing: proses per 2 file untuk Vercel
-    $chunkSize = $isServerless ? 2 : 5;
-    $startTime = time();
-    $maxExecutionTime = $isServerless ? 8 : 580;
+    // Simpan status awal
+    $statusData = [
+        'session_id' => $sessionId,
+        'total_files' => $total,
+        'uploaded' => 0,
+        'failed' => 0,
+        'status' => 'processing',
+        'start_time' => time(),
+        'results' => []
+    ];
+    file_put_contents($statusFile, json_encode($statusData));
     
-    for ($i = 0; $i < $total; $i += $chunkSize) {
-        // Cek timeout
-        if ($isServerless && (time() - $startTime) > $maxExecutionTime) {
-            // Simpan progress untuk resume
-            if ($sessionId) {
-                $progressData = [
-                    'offset' => $offset + $i,
-                    'uploaded' => $uploaded,
-                    'failed' => $failed,
-                    'results' => $results,
-                    'total_files' => $zip->numFiles
-                ];
-                saveProgress($sessionId, $progressData);
+    // Proses SEMUA file
+    foreach ($fileList as $file) {
+        try {
+            $filePath = $file['name'];
+            $content = $zip->getFromIndex($file['index']);
+            if ($content === false) {
+                throw new Exception('Gagal membaca file');
             }
             
-            $zip->close();
-            unlink($tempZip);
+            $base64Content = bufferToBase64($content);
+            uploadToGitHub($token, $owner, $repo, $filePath, $base64Content);
             
-            return [
-                'uploaded' => $uploaded,
-                'failed' => $failed,
-                'total' => $zip->numFiles,
-                'processed' => $processed + $uploaded + $failed,
-                'results' => $results,
-                'completed' => false,
-                'partial' => true,
-                'session_id' => $sessionId,
-                'message' => "Timeout, silahkan lanjutkan dengan session_id: {$sessionId}",
-                'next_offset' => $offset + $i
-            ];
+            $uploaded++;
+            $results[] = ['path' => $filePath, 'status' => 'success'];
+            
+        } catch (Exception $e) {
+            $failed++;
+            $results[] = ['path' => $file['name'], 'status' => 'failed', 'error' => $e->getMessage()];
         }
         
-        $chunk = array_slice($fileList, $i, $chunkSize);
-        
-        foreach ($chunk as $file) {
-            try {
-                $filePath = $file['name'];
-                $content = $zip->getFromIndex($file['index']);
-                if ($content === false) {
-                    throw new Exception('Gagal membaca file');
-                }
-                
-                $base64Content = bufferToBase64($content);
-                uploadToGitHub($token, $owner, $repo, $filePath, $base64Content, 2);
-                
-                $uploaded++;
-                $results[] = ['path' => $filePath, 'status' => 'success'];
-                
-            } catch (Exception $e) {
-                $failed++;
-                $results[] = ['path' => $file['name'], 'status' => 'failed', 'error' => $e->getMessage()];
-            }
-            
-            $processed++;
-        }
-        
-        // Delay minimal
-        if ($i + $chunkSize < $total) {
-            usleep($isServerless ? 30000 : 100000);
+        // Update status setiap 5 file
+        if (($uploaded + $failed) % 5 == 0 || ($uploaded + $failed) == $total) {
+            $statusData['uploaded'] = $uploaded;
+            $statusData['failed'] = $failed;
+            $statusData['results'] = $results;
+            file_put_contents($statusFile, json_encode($statusData));
         }
     }
     
     $zip->close();
     unlink($tempZip);
     
-    // Hapus session jika selesai
-    if ($sessionId) {
-        clearProgress($sessionId);
-    }
+    // Update status selesai
+    $statusData['uploaded'] = $uploaded;
+    $statusData['failed'] = $failed;
+    $statusData['status'] = 'completed';
+    $statusData['results'] = $results;
+    $statusData['end_time'] = time();
+    file_put_contents($statusFile, json_encode($statusData));
     
     return [
         'uploaded' => $uploaded,
         'failed' => $failed,
-        'total' => $zip->numFiles,
-        'processed' => $processed,
+        'total' => $total,
         'results' => $results,
-        'completed' => true,
-        'partial' => false
+        'session_id' => $sessionId
     ];
 }
 
 // ========== HANDLE REQUEST ==========
 
 try {
-    // Meta response
-    $responseMeta = [
-        'environment' => $isServerless ? 'Vercel' : 'Standard',
-        'timeout_limit' => $isServerless ? '10 seconds' : '600 seconds',
-        'max_files' => 'UNLIMITED'
-    ];
-    
-    // Cek apakah ini request resume
-    $isResume = isset($_POST['session_id']) && !empty($_POST['session_id']);
-    
-    // Validasi parameter
-    if (!isset($_POST['token']) || !isset($_POST['owner']) || !isset($_POST['repo'])) {
+    // ========== CEK STATUS ==========
+    if (isset($_POST['check']) && !empty($_POST['check'])) {
+        $sessionId = trim($_POST['check']);
+        $statusFile = sys_get_temp_dir() . "/upload_status_{$sessionId}.json";
+        
+        if (!file_exists($statusFile)) {
+            throw new Exception('Session ID tidak ditemukan atau sudah expired');
+        }
+        
+        $status = json_decode(file_get_contents($statusFile), true);
+        
+        echo json_encode(array_merge($credit, [
+            'status' => true,
+            'type' => 'check_status',
+            'result' => [
+                'session_id' => $sessionId,
+                'total_files' => $status['total_files'],
+                'uploaded' => $status['uploaded'],
+                'failed' => $status['failed'],
+                'progress' => round(($status['uploaded'] / $status['total_files']) * 100, 2) . '%',
+                'status' => $status['status'],
+                'is_done' => $status['status'] === 'completed',
+                'results' => $status['results']
+            ]
+        ]));
+        exit;
+    }
+
+    // ========== VALIDASI PARAMETER ==========
+    if (!isset($_POST['token']) || !isset($_POST['owner']) || !isset($_POST['repo']) || !isset($_POST['mode'])) {
         throw new Exception(
             "Parameter wajib:\n" .
             "token - GitHub Personal Access Token (repo scope)\n" .
             "owner - Username GitHub\n" .
             "repo - Nama repository\n" .
             "mode - new (buat baru) atau existing (pakai yg ada)\n" .
-            "session_id - (optional) untuk resume upload\n\n" .
+            "check - (optional) session_id untuk cek status\n\n" .
             "Contoh: token=ghp_xxxxx&owner=jerexd&repo=my-repo&mode=new"
         );
     }
@@ -372,9 +314,8 @@ try {
     $token = trim($_POST['token']);
     $owner = trim($_POST['owner']);
     $repoName = trim($_POST['repo']);
-    $repoType = isset($_POST['mode']) ? trim($_POST['mode']) : 'existing';
+    $repoType = trim($_POST['mode']);
     
-    // Validasi token format
     if (!preg_match('/^ghp_[a-zA-Z0-9]{36}$/', $token)) {
         throw new Exception('Format token GitHub tidak valid. Harus dimulai dengan ghp_');
     }
@@ -383,52 +324,7 @@ try {
         throw new Exception("Mode harus 'new' atau 'existing'!");
     }
     
-    // Handle resume
-    if ($isResume) {
-        $sessionId = trim($_POST['session_id']);
-        $progress = getProgress($sessionId);
-        
-        if (!$progress) {
-            throw new Exception("Session ID tidak valid atau sudah expired");
-        }
-        
-        // Resume proses
-        $result = processZipUnlimited(
-            file_get_contents($_FILES['file']['tmp_name']),
-            $token,
-            $owner,
-            $repoName,
-            $sessionId,
-            $progress['offset']
-        );
-        
-        // Merge hasil sebelumnya
-        $result['results'] = array_merge($progress['results'], $result['results']);
-        $result['uploaded'] = $progress['uploaded'] + $result['uploaded'];
-        $result['failed'] = $progress['failed'] + $result['failed'];
-        $result['total'] = $progress['total_files'];
-        
-        echo json_encode([
-            'creator' => 'Tiyanz',
-            'source' => 'https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33',
-            'version' => '3.0-unlimited-vercel',
-            'status' => true,
-            'environment' => $responseMeta,
-            'type' => 'resume',
-            'result' => [
-                'repository' => "https://github.com/{$owner}/{$repoName}",
-                'total_files' => $result['total'],
-                'uploaded' => $result['uploaded'],
-                'failed' => $result['failed'],
-                'success_rate' => $result['total'] > 0 ? round(($result['uploaded'] / $result['total']) * 100, 2) . '%' : '0%',
-                'completed' => $result['completed'],
-                'session_id' => $sessionId
-            ]
-        ], JSON_PRETTY_PRINT);
-        exit;
-    }
-    
-    // Cek file ZIP
+    // ========== CEK FILE ZIP ==========
     if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
         throw new Exception('File ZIP wajib diupload');
     }
@@ -444,8 +340,7 @@ try {
         throw new Exception('File harus berformat ZIP');
     }
     
-    // Batasi ukuran (tetap 20MB)
-    $maxSize = 20 * 1024 * 1024;
+    $maxSize = 20 * 1024 * 1024; // 20MB
     if ($fileSize > $maxSize) {
         throw new Exception('File ZIP terlalu besar (max 20MB)');
     }
@@ -456,7 +351,6 @@ try {
     // ========== PROSES UPLOAD ==========
     
     $repo = $repoName;
-    $startProcessTime = microtime(true);
     
     // Create atau cek repository
     if ($repoType === 'new') {
@@ -474,76 +368,92 @@ try {
         }
     }
     
-    // Generate session ID untuk resume
+    // Generate session ID
     $sessionId = uniqid('upload_', true);
     
-    // Proses ZIP unlimited
-    $result = processZipUnlimited($zipBuffer, $token, $owner, $repo, $sessionId, 0);
+    // ========== JALANKAN BACKGROUND ==========
+    // Pake exec biar jalan di background
+    $cmd = "php -r \"include '" . __FILE__ . "'; processBackground('{$sessionId}');\" > /dev/null 2>&1 &";
     
-    $processTime = round(microtime(true) - $startProcessTime, 2);
+    // Simpan data untuk background process
+    $jobData = [
+        'zip_buffer' => base64_encode($zipBuffer),
+        'token' => $token,
+        'owner' => $owner,
+        'repo' => $repo,
+        'session_id' => $sessionId
+    ];
+    $jobFile = sys_get_temp_dir() . "/job_{$sessionId}.json";
+    file_put_contents($jobFile, json_encode($jobData));
     
-    // ========== RESPONSE ==========
+    exec($cmd);
     
-    $response = [
-        'creator' => 'Tiyanz',
-        'source' => 'https://whatsapp.com/channel/0029VbAo3iNAjPXTxx0Luv33',
-        'version' => '3.0-unlimited-vercel',
+    // ========== RESPONSE LANGSUNG ==========
+    
+    echo json_encode(array_merge($credit, [
         'status' => true,
-        'environment' => $responseMeta,
+        'type' => 'background_processing',
+        'message' => '📦 Upload sedang diproses di background!',
         'result' => [
             'repository' => "https://github.com/{$owner}/{$repo}",
             'zip_size_mb' => $zipSizeMB,
-            'total_files' => $result['total'],
-            'uploaded' => $result['uploaded'],
-            'failed' => $result['failed'],
-            'success_rate' => $result['total'] > 0 ? round(($result['uploaded'] / $result['total']) * 100, 2) . '%' : '0%',
-            'process_time' => $processTime . 's',
-            'completed' => $result['completed']
+            'session_id' => $sessionId,
+            'how_to_check' => [
+                'method' => 'POST',
+                'params' => [
+                    'check' => $sessionId,
+                    'token' => $token,
+                    'owner' => $owner,
+                    'repo' => $repo,
+                    'mode' => $repoType
+                ]
+            ],
+            'note' => '⚠️ Proses berjalan di background, cek status dengan parameter check'
         ]
-    ];
-    
-    // Jika partial (timeout), berikan session_id untuk resume
-    if (isset($result['partial']) && $result['partial']) {
-        $response['result']['partial'] = true;
-        $response['result']['session_id'] = $sessionId;
-        $response['result']['next_offset'] = $result['next_offset'];
-        $response['result']['message'] = $result['message'];
-        $response['result']['resume_instruction'] = [
-            'method' => 'POST',
-            'params' => [
-                'token' => $token,
-                'owner' => $owner,
-                'repo' => $repo,
-                'mode' => $repoType,
-                'session_id' => $sessionId,
-                'file' => 'upload ZIP yang sama'
-            ]
-        ];
-    }
-    
-    if ($result['failed'] > 0) {
-        $failedFiles = array_slice(
-            array_filter($result['results'], function($r) { return $r['status'] === 'failed'; }),
-            0,
-            5
-        );
-        $response['result']['failed_details'] = array_map(function($f) {
-            return $f['path'] . ' - ' . $f['error'];
-        }, $failedFiles);
-        if ($result['failed'] > 5) {
-            $response['result']['failed_details'][] = "dan " . ($result['failed'] - 5) . " file lainnya";
-        }
-    }
-    
-    echo json_encode($response, JSON_PRETTY_PRINT);
+    ]));
     
 } catch (Exception $e) {
-    http_response_code($isServerless ? 408 : 500);
+    http_response_code(500);
     echo json_encode(array_merge($credit, [
         'status' => false,
         'message' => $e->getMessage(),
-        'error_code' => $e->getCode(),
-        'environment' => $isServerless ? 'Vercel' : 'Standard'
-    ]), JSON_PRETTY_PRINT);
+        'error_code' => $e->getCode()
+    ]));
+}
+
+// ========== BACKGROUND PROCESSOR ==========
+
+function processBackground($sessionId) {
+    $jobFile = sys_get_temp_dir() . "/job_{$sessionId}.json";
+    
+    if (!file_exists($jobFile)) {
+        return;
+    }
+    
+    $jobData = json_decode(file_get_contents($jobFile), true);
+    $zipBuffer = base64_decode($jobData['zip_buffer']);
+    $token = $jobData['token'];
+    $owner = $jobData['owner'];
+    $repo = $jobData['repo'];
+    
+    try {
+        $result = processZipOneShot($zipBuffer, $token, $owner, $repo, $sessionId);
+        unlink($jobFile);
+    } catch (Exception $e) {
+        $statusFile = sys_get_temp_dir() . "/upload_status_{$sessionId}.json";
+        file_put_contents($statusFile, json_encode([
+            'session_id' => $sessionId,
+            'status' => 'error',
+            'error' => $e->getMessage()
+        ]));
+        unlink($jobFile);
+    }
+}
+
+// Jalankan background jika dipanggil
+if (isset($_POST['background_process']) && $_POST['background_process'] == '1') {
+    $sessionId = $_POST['job_id'];
+    processBackground($sessionId);
+    exit;
 }
 ?>
