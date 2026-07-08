@@ -1,77 +1,142 @@
 <?php
+error_reporting(0);
+ini_set('display_errors', '0');
+
 /**
- * fakedev.php
- * Konversi dari kode C++ (cpprest) ke PHP CLI.
- *
- * Pakai:
- *   php fakedev.php -profile "url" -name "nama" -bio "bio"
+ * ───「 FEATURE AUTHOR 」───
+ * 👤 Author     : Lynx Decode
+ * 📞 Contact    : +62 882-5804-1396
+ * 📢 Channel    : https://whatsapp.com/channel/0029VbAnuii6GcGCu73oep1i
+ * ⚠️ Note       : Keep credit to respect the creator!
+ * ─────────────────────────
+ * 📝 Plugin: Fake Developer 3 Maker
+ * 📌 Dikonversi ke PHP oleh Tiyanz
  */
 
-function usage() {
-    echo "pakai: php fakedev.php -profile \"url\" -name \"nama\" -bio \"bio\"" . PHP_EOL;
+header('Content-Type: image/png; charset=utf-8');
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Headers: Content-Type");
+
+if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { 
+    http_response_code(200); 
+    exit; 
 }
 
-function main($argv) {
-    $profile = '';
-    $name    = '';
-    $bio     = '';
+// ========== CREDIT ==========
+$credit = ['creator' => 'Tiyanz', 'original' => 'Lynx Decode'];
 
-    $argc = count($argv);
-    for ($i = 1; $i < $argc; $i++) {
-        $arg = $argv[$i];
-        if ($arg === '-profile' && $i + 1 < $argc) {
-            $profile = $argv[++$i];
-        } elseif ($arg === '-name' && $i + 1 < $argc) {
-            $name = $argv[++$i];
-        } elseif ($arg === '-bio' && $i + 1 < $argc) {
-            $bio = $argv[++$i];
+// Ambil parameter
+$text   = trim($_GET['text'] ?? '');
+$image  = trim($_GET['image'] ?? '');
+
+// Validasi parameter
+if (empty($text)) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => false, 
+        'creator' => 'Tiyanz', 
+        'msg' => 'Parameter text diperlukan! Contoh: ?text=Hello+World&image=https://example.com/foto.jpg'
+    ]);
+    exit;
+}
+
+if (empty($image)) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => false, 
+        'creator' => 'Tiyanz', 
+        'msg' => 'Parameter image (URL foto) diperlukan!'
+    ]);
+    exit;
+}
+
+// Forward ke API asli JagoanProject
+$apiUrl = 'https://restapi.jagoanproject.web.id/api/maker/fakedev3?' . http_build_query([
+    'text' => $text,
+    'verified' => 'true',
+    'image' => $image
+]);
+
+$ch = curl_init($apiUrl);
+curl_setopt_array($ch, [
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_FOLLOWLOCATION => true,
+    CURLOPT_SSL_VERIFYPEER => false,
+    CURLOPT_TIMEOUT => 30,
+    CURLOPT_USERAGENT => 'Mozilla/5.0',
+    CURLOPT_HTTPHEADER => [
+        'Accept: image/png,application/json',
+        'Authorization: Bearer Lynxdecode'
+    ],
+]);
+
+$response = curl_exec($ch);
+$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+$contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
+curl_close($ch);
+
+if ($httpCode !== 200 || empty($response)) {
+    header('Content-Type: application/json');
+    echo json_encode([
+        'status' => false, 
+        'creator' => 'Tiyanz', 
+        'msg' => 'Gagal mengambil data dari API', 
+        'http_code' => $httpCode
+    ]);
+    exit;
+}
+
+// Cek apakah response berupa JSON (jika API mengembalikan error)
+if (strpos($contentType, 'application/json') !== false) {
+    $jsonData = json_decode($response, true);
+    if ($jsonData && isset($jsonData['status']) && $jsonData['status'] === false) {
+        header('Content-Type: application/json');
+        echo json_encode([
+            'status' => false,
+            'creator' => 'Tiyanz',
+            'msg' => $jsonData['message'] ?? 'API mengembalikan error'
+        ]);
+        exit;
+    }
+    
+    // Jika response JSON dengan URL gambar
+    if ($jsonData && isset($jsonData['result']['url'])) {
+        // Ambil gambar dari URL yang diberikan
+        $imageUrl = $jsonData['result']['url'];
+        $ch2 = curl_init($imageUrl);
+        curl_setopt_array($ch2, [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_TIMEOUT => 30,
+        ]);
+        $imageData = curl_exec($ch2);
+        $imageHttpCode = curl_getinfo($ch2, CURLINFO_HTTP_CODE);
+        $imageContentType = curl_getinfo($ch2, CURLINFO_CONTENT_TYPE);
+        curl_close($ch2);
+        
+        if ($imageHttpCode === 200 && !empty($imageData)) {
+            header('Content-Type: ' . ($imageContentType ?: 'image/png'));
+            echo $imageData;
+            exit;
         }
     }
-
-    if ($profile === '' || $name === '' || $bio === '') {
-        usage();
-        exit(1);
-    }
-
-    // rawurlencode() di PHP setara dengan fungsi encode() manual di kode C++
-    $url = "https://api.azbry.com/api/maker/fakedev"
-         . "?img="  . rawurlencode($profile)
-         . "&name=" . rawurlencode($name)
-         . "&bio="  . rawurlencode($bio);
-
-    echo "mengambil gambar..." . PHP_EOL;
-
-    // Gunakan cURL untuk request GET
-    $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, $url);
-    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 60);
-
-    $body = curl_exec($ch);
-
-    if ($body === false) {
-        fwrite(STDERR, "error: " . curl_error($ch) . PHP_EOL);
-        curl_close($ch);
-        exit(1);
-    }
-
-    $statusCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
-
-    if ($statusCode !== 200) {
-        fwrite(STDERR, "gagal: " . $statusCode . PHP_EOL);
-        exit(1);
-    }
-
-    $saved = file_put_contents('fakedev.jpg', $body);
-    if ($saved === false) {
-        fwrite(STDERR, "error: gagal menyimpan file fakedev.jpg" . PHP_EOL);
-        exit(1);
-    }
-
-    echo "tersimpan: fakedev.jpg" . PHP_EOL;
-    exit(0);
 }
 
-main($argv);
+// Jika response langsung berupa gambar
+if (strpos($contentType, 'image') !== false || strpos($contentType, 'application/octet-stream') !== false) {
+    header('Content-Type: ' . ($contentType ?: 'image/png'));
+    echo $response;
+    exit;
+}
+
+// Fallback: jika semua gagal
+header('Content-Type: application/json');
+echo json_encode([
+    'status' => false,
+    'creator' => 'Tiyanz',
+    'msg' => 'Gagal memproses gambar',
+    'content_type' => $contentType
+]);
+?>
