@@ -1,10 +1,8 @@
 <?php
-error_reporting(0);
-ini_set('display_errors', '0');
 
-// ========== CREDIT ==========
-$credit = ['creator' => 'Nanzz'];
-
+/**
+ * URL encode manual (mirip dengan fungsi encode di C++)
+ */
 function encode($v) {
     $out = '';
     $len = strlen($v);
@@ -19,111 +17,75 @@ function encode($v) {
     return $out;
 }
 
+/**
+ * Menampilkan cara penggunaan
+ */
 function usage() {
-    echo "pakai: php fakedev.php -profile \"url_foto\" -name \"nama\" -bio \"bio\"\n";
+    echo "pakai: php fakedev.php -profile \"url\" -name \"nama\" -bio \"bio\"\n";
 }
 
-// ========== CLI MODE ==========
-if (php_sapi_name() === 'cli') {
-    $argv = $_SERVER['argv'];
-    $argc = $_SERVER['argc'];
-    
-    $profile = '';
-    $name = '';
-    $bio = '';
-    
-    for ($i = 1; $i < $argc; $i++) {
-        $arg = $argv[$i];
-        if ($arg == '-profile' && $i + 1 < $argc) {
-            $profile = $argv[++$i];
-        } elseif ($arg == '-name' && $i + 1 < $argc) {
-            $name = $argv[++$i];
-        } elseif ($arg == '-bio' && $i + 1 < $argc) {
-            $bio = $argv[++$i];
-        }
+// Parse command line arguments
+$profile = '';
+$name = '';
+$bio = '';
+
+for ($i = 1; $i < $argc; $i++) {
+    $arg = $argv[$i];
+    if ($arg == '-profile' && isset($argv[$i + 1])) {
+        $profile = $argv[++$i];
+    } elseif ($arg == '-name' && isset($argv[$i + 1])) {
+        $name = $argv[++$i];
+    } elseif ($arg == '-bio' && isset($argv[$i + 1])) {
+        $bio = $argv[++$i];
     }
-    
-    if (empty($profile) || empty($name) || empty($bio)) {
-        usage();
-        exit(1);
-    }
-    
-    echo "mengambil gambar...\n";
-    
+}
+
+// Validasi input
+if (empty($profile) || empty($name) || empty($bio)) {
+    usage();
+    exit(1);
+}
+
+echo "mengambil gambar...\n";
+
+try {
+    // Build URL dengan encode manual (sama seperti C++)
     $url = "https://api.azbry.com/api/maker/fakedev?img=" . encode($profile) . "&name=" . encode($name) . "&bio=" . encode($bio);
     
-    $ch = curl_init($url);
-    curl_setopt_array($ch, [
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_SSL_VERIFYPEER => false,
-        CURLOPT_TIMEOUT => 30,
-        CURLOPT_USERAGENT => 'Mozilla/5.0',
-        CURLOPT_HTTPHEADER => ['Accept: image/jpeg'],
-    ]);
+    // Inisialisasi CURL
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
     
-    $imageData = curl_exec($ch);
+    // Eksekusi request
+    $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-    curl_close($ch);
     
-    if ($httpCode !== 200 || empty($imageData)) {
-        fwrite(STDERR, "gagal: " . $httpCode . "\n");
-        exit(1);
+    // Cek error CURL
+    if (curl_error($ch)) {
+        throw new Exception(curl_error($ch));
     }
     
-    file_put_contents('fakedev.jpg', $imageData);
-    echo "tersimpan: fakedev.jpg\n";
-    exit(0);
+    curl_close($ch);
+    
+    // Cek status code
+    if ($httpCode !== 200) {
+        throw new Exception("gagal: " . $httpCode);
+    }
+    
+    // Simpan file
+    $filename = "fakedev.jpg";
+    if (file_put_contents($filename, $response) === false) {
+        throw new Exception("gagal menyimpan file");
+    }
+    
+    echo "tersimpan: " . $filename . "\n";
+    
+} catch (Exception $e) {
+    echo "error: " . $e->getMessage() . "\n";
+    exit(1);
 }
 
-// ========== WEB MODE ==========
-header('Content-Type: image/jpeg; charset=utf-8');
-header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
-header("Access-Control-Allow-Headers: Content-Type");
-
-if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { 
-    http_response_code(200); 
-    exit; 
-}
-
-$img = trim($_GET['img'] ?? '');
-$name = trim($_GET['name'] ?? '');
-$bio = trim($_GET['bio'] ?? '');
-
-if (empty($img) || empty($name) || empty($bio)) {
-    header('Content-Type: application/json');
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'msg' => 'Parameter diperlukan: img, name, bio']);
-    exit;
-}
-
-$url = "https://api.azbry.com/api/maker/fakedev?" . http_build_query([
-    'img' => $img,
-    'name' => $name,
-    'bio' => $bio
-]);
-
-$ch = curl_init($url);
-curl_setopt_array($ch, [
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_SSL_VERIFYPEER => false,
-    CURLOPT_TIMEOUT => 30,
-    CURLOPT_USERAGENT => 'Mozilla/5.0',
-    CURLOPT_HTTPHEADER => ['Accept: image/jpeg'],
-]);
-
-$imageData = curl_exec($ch);
-$httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-$contentType = curl_getinfo($ch, CURLINFO_CONTENT_TYPE);
-curl_close($ch);
-
-if ($httpCode !== 200 || empty($imageData)) {
-    header('Content-Type: application/json');
-    echo json_encode(['status' => false, 'creator' => 'Nanzz', 'msg' => 'Gagal fetch dari API asli', 'http_code' => $httpCode]);
-    exit;
-}
-
-header('Content-Type: ' . ($contentType ?: 'image/jpeg'));
-echo $imageData;
 ?>
