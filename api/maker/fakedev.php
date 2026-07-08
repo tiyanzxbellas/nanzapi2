@@ -5,7 +5,6 @@ ini_set('display_errors', '0');
 // ========== CREDIT ==========
 $credit = ['creator' => 'Nanzz'];
 
-// Fungsi encode URL
 function encode($v) {
     $out = '';
     $len = strlen($v);
@@ -21,7 +20,7 @@ function encode($v) {
 }
 
 function usage() {
-    echo "pakai: php fakedev.php -profile \"url\" -name \"nama\" -bio \"bio\"\n";
+    echo "pakai: php fakedev.php -profile \"url_foto\" -name \"nama\" -bio \"bio\"\n";
 }
 
 // ========== CLI MODE ==========
@@ -51,8 +50,7 @@ if (php_sapi_name() === 'cli') {
     
     echo "mengambil gambar...\n";
     
-    // PAKAI API TIYANZ
-    $url = "https://api.septyandaputra.my.id/api/maker/fakedev.php?img=" . encode($profile) . "&name=" . encode($name) . "&bio=" . encode($bio);
+    $url = "https://api.azbry.com/api/maker/fakedev?img=" . encode($profile) . "&name=" . encode($name) . "&bio=" . encode($bio);
     
     $ch = curl_init($url);
     curl_setopt_array($ch, [
@@ -89,8 +87,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit; 
 }
 
-$credit = ['creator' => 'Nanzz'];
-
 $img = trim($_GET['img'] ?? '');
 $name = trim($_GET['name'] ?? '');
 $bio = trim($_GET['bio'] ?? '');
@@ -101,11 +97,10 @@ if (empty($img) || empty($name) || empty($bio)) {
     exit;
 }
 
-// Forward ke API Tiyanz
-$url = 'https://api.septyandaputra.my.id/api/maker/fakedev.php?' . http_build_query([
+$url = "https://api.azbry.com/api/maker/fakedev?" . http_build_query([
     'img' => $img,
     'name' => $name,
-    'bio' => $bio,
+    'bio' => $bio
 ]);
 
 $ch = curl_init($url);
