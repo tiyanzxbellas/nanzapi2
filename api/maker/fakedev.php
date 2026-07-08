@@ -7,15 +7,13 @@ ini_set('display_errors', '0');
  * 👤 Author     : Lynx Decode
  * 📞 Contact    : +62 882-5804-1396
  * 📢 Channel    : https://whatsapp.com/channel/0029VbAnuii6GcGCu73oep1i
- * ⚠️ Note       : Keep credit to respect the creator!
  * ─────────────────────────
- * 📝 Plugin: Fake Developer 3 Maker
+ * 📝 Plugin: Fake Developer 3 Maker (Support Upload File)
  * 📌 Dikonversi ke PHP oleh Tiyanz
  */
 
-header('Content-Type: image/png; charset=utf-8');
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Methods: GET, OPTIONS");
+header("Access-Control-Allow-Methods: GET, POST, OPTIONS");
 header("Access-Control-Allow-Headers: Content-Type");
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') { 
@@ -26,36 +24,85 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 // ========== CREDIT ==========
 $credit = ['creator' => 'Tiyanz', 'original' => 'Lynx Decode'];
 
-// Ambil parameter
-$text   = trim($_GET['text'] ?? '');
-$image  = trim($_GET['image'] ?? '');
+// Ambil parameter text (bisa dari GET atau POST)
+$text = trim($_GET['text'] ?? $_POST['text'] ?? '');
 
-// Validasi parameter
+// Validasi text
 if (empty($text)) {
     header('Content-Type: application/json');
     echo json_encode([
         'status' => false, 
         'creator' => 'Tiyanz', 
-        'msg' => 'Parameter text diperlukan! Contoh: ?text=Hello+World&image=https://example.com/foto.jpg'
+        'msg' => 'Parameter text diperlukan!'
     ]);
     exit;
 }
 
-if (empty($image)) {
-    header('Content-Type: application/json');
-    echo json_encode([
-        'status' => false, 
-        'creator' => 'Tiyanz', 
-        'msg' => 'Parameter image (URL foto) diperlukan!'
+// Fungsi upload gambar ke hosting (biar dapet URL)
+function uploadImageToHost($filePath, $mimeType) {
+    // Pake Litterbox dulu
+    $url = 'https://api.shinzu.web.id/api/upload/litterbox';
+    
+    $postData = [
+        'file' => new CURLFile($filePath, $mimeType, 'upload_image')
+    ];
+    
+    $ch = curl_init($url);
+    curl_setopt_array($ch, [
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $postData,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_TIMEOUT => 30,
     ]);
-    exit;
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $json = json_decode($response, true);
+        if ($json && isset($json['result']['url'])) {
+            return $json['result']['url'];
+        }
+    }
+    
+    return null;
 }
 
-// Forward ke API asli JagoanProject
+// Cek apakah ada file yang diupload
+$imageUrl = '';
+
+// 1. Cek dari upload file (POST dengan enctype multipart/form-data)
+if (isset($_FILES['image']) && $_FILES['image']['error'] === UPLOAD_ERR_OK) {
+    $tempPath = $_FILES['image']['tmp_name'];
+    $mimeType = $_FILES['image']['type'] ?: mime_content_type($tempPath);
+    
+    // Upload ke hosting dulu
+    $uploadedUrl = uploadImageToHost($tempPath, $mimeType);
+    if ($uploadedUrl) {
+        $imageUrl = $uploadedUrl;
+    }
+}
+
+// 2. Cek dari parameter GET/POST (URL atau base64)
+if (empty($imageUrl)) {
+    $imageParam = trim($_GET['image'] ?? $_POST['image'] ?? '');
+    if (!empty($imageParam)) {
+        $imageUrl = $imageParam;
+    }
+}
+
+// 3. Jika masih kosong, pake default
+if (empty($imageUrl)) {
+    $imageUrl = 'https://i.ibb.co/1s8T3sY/48f7ce63c7aa.jpg';
+}
+
+// Forward ke API JagoanProject
 $apiUrl = 'https://restapi.jagoanproject.web.id/api/maker/fakedev3?' . http_build_query([
     'text' => $text,
     'verified' => 'true',
-    'image' => $image
+    'image' => $imageUrl
 ]);
 
 $ch = curl_init($apiUrl);
@@ -87,22 +134,10 @@ if ($httpCode !== 200 || empty($response)) {
     exit;
 }
 
-// Cek apakah response berupa JSON (jika API mengembalikan error)
+// Cek apakah response berupa JSON
 if (strpos($contentType, 'application/json') !== false) {
     $jsonData = json_decode($response, true);
-    if ($jsonData && isset($jsonData['status']) && $jsonData['status'] === false) {
-        header('Content-Type: application/json');
-        echo json_encode([
-            'status' => false,
-            'creator' => 'Tiyanz',
-            'msg' => $jsonData['message'] ?? 'API mengembalikan error'
-        ]);
-        exit;
-    }
-    
-    // Jika response JSON dengan URL gambar
     if ($jsonData && isset($jsonData['result']['url'])) {
-        // Ambil gambar dari URL yang diberikan
         $imageUrl = $jsonData['result']['url'];
         $ch2 = curl_init($imageUrl);
         curl_setopt_array($ch2, [
@@ -131,7 +166,7 @@ if (strpos($contentType, 'image') !== false || strpos($contentType, 'application
     exit;
 }
 
-// Fallback: jika semua gagal
+// Fallback
 header('Content-Type: application/json');
 echo json_encode([
     'status' => false,
